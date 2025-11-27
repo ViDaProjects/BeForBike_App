@@ -1,6 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:be_for_bike/l10n/app_localizations.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../domain/entities/activity.dart';
@@ -215,9 +214,7 @@ class GraphTab extends StatelessWidget {
                                   dashArray: [5, 5],
                                   label: HorizontalLineLabel(
                                       show: true,
-                                      labelResolver: (_) =>
-                                          AppLocalizations.of(context)!
-                                              .average_speed),
+                                      labelResolver: (_) => 'Average Speed'),
                                 ),
                               ],
                             ),
@@ -234,7 +231,7 @@ class GraphTab extends StatelessWidget {
                               width: 8,
                             ),
                             Text(
-                              AppLocalizations.of(context)!.no_data,
+                              'No Data',
                               style: const TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.bold),
                             ),

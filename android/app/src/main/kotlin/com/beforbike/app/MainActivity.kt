@@ -117,6 +117,26 @@ class MainActivity: FlutterActivity() {
                     }
                     result.success(locations)
                 }
+                "getActivityData" -> {
+                    val activityId = call.argument<String>("activityId") ?: ""
+                    val rideId = activityId.toLongOrNull() ?: 0L
+                    val stats = dbHelper.getActivityStatistics(rideId)
+                    if (stats != null) {
+                        result.success(stats)
+                    } else {
+                        result.success(emptyMap<String, Any>())
+                    }
+                }
+                "getActivityChartData" -> {
+                    val activityId = call.argument<String>("activityId") ?: ""
+                    val rideId = activityId.toLongOrNull() ?: 0L
+                    val chartData = dbHelper.getActivityChartData(rideId)
+                    if (chartData != null) {
+                        result.success(chartData)
+                    } else {
+                        result.success(emptyList<Map<String, Any>>())
+                    }
+                }
                 "deleteActivity" -> {
                     val activityId = call.argument<String>("activityId") ?: ""
                     val rideId = activityId.toLongOrNull() ?: 0L

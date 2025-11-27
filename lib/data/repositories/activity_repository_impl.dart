@@ -5,7 +5,6 @@ import '../../domain/entities/activity.dart';
 import '../../domain/entities/location.dart';
 import '../../domain/entities/page.dart';
 import '../../domain/repositories/activity_repository.dart';
-import '../api/activity_api.dart';
 
 /// Provider for the ActivityRepository implementation.
 final activityRepositoryProvider =
@@ -19,34 +18,16 @@ class ActivityRepositoryImpl extends ActivityRepository {
 
   @override
   Future<EntityPage<Activity>> getActivities({int pageNumber = 0}) async {
-    try {
-      // Try to get activities from local database first
-      final List<dynamic> activitiesData = await platform.invokeMethod('getAllActivities');
+    // Get activities from local database
+    final List<dynamic> activitiesData = await platform.invokeMethod('getAllActivities');
 
-      if (activitiesData.isNotEmpty) {
-        List<Activity> activities = [];
-        for (var activityMap in activitiesData) {
-          final activity = await _mapDatabaseActivityToEntity(activityMap as Map<dynamic, dynamic>);
-          activities.add(activity);
-        }
-
-        return EntityPage(list: activities, total: activities.length);
-      }
-    } catch (e) {
-      // Fall back to API if database fails
+    List<Activity> activities = [];
+    for (var activityMap in activitiesData) {
+      final activity = await _mapDatabaseActivityToEntity(activityMap as Map<dynamic, dynamic>);
+      activities.add(activity);
     }
 
-    // Fallback to API
-    final activityResponses = await ActivityApi.getActivities(pageNumber);
-    List<Activity> activities =
-        activityResponses.list.map((response) => response.toEntity()).toList();
-    return EntityPage(list: activities, total: activityResponses.total);
-  }
-
-  @override
-  Future<EntityPage<Activity>> getMyAndMyFriendsActivities({int pageNumber = 0}) async {
-    // For now, just return regular activities
-    return getActivities(pageNumber: pageNumber);
+    return EntityPage(list: activities, total: activities.length);
   }
 
   @override
@@ -57,24 +38,18 @@ class ActivityRepositoryImpl extends ActivityRepository {
 
   @override
   Future<Activity> getActivityById({required String id}) async {
-    try {
-      // Try to get activity from local database first
-      final List<dynamic> activitiesData = await platform.invokeMethod('getAllActivities');
-      final activityMap = activitiesData.firstWhere(
-        (activity) => activity['id'] == id,
-        orElse: () => null,
-      );
+    // Get activity from local database
+    final List<dynamic> activitiesData = await platform.invokeMethod('getAllActivities');
+    final activityMap = activitiesData.firstWhere(
+      (activity) => activity['id'] == id,
+      orElse: () => null,
+    );
 
-      if (activityMap != null) {
-        return await _mapDatabaseActivityToEntity(activityMap as Map<dynamic, dynamic>);
-      }
-    } catch (e) {
-      // Fall back to API if database fails
+    if (activityMap != null) {
+      return await _mapDatabaseActivityToEntity(activityMap as Map<dynamic, dynamic>);
     }
 
-    // Fallback to API
-    final activityResponse = await ActivityApi.getActivityById(id);
-    return activityResponse.toEntity();
+    throw Exception('Activity not found');
   }
 
   Future<Activity> _mapDatabaseActivityToEntity(Map<dynamic, dynamic> activityMap) async {

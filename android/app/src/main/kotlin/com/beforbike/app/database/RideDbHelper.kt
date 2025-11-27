@@ -28,6 +28,7 @@ class RideDbHelper(context: Context) :
             const val COLUMN_END_TIME = "end_time"
             const val COLUMN_TOTAL_DISTANCE_KM = "total_distance_km"
             const val COLUMN_AVG_VELOCITY_KMH = "avg_velocity_kmh"
+            const val COLUMN_AVG_ALTITUDE = "avg_altitude"
             const val COLUMN_AVG_POWER = "avg_power"
             const val COLUMN_AVG_CADENCE = "avg_cadence"
             const val COLUMN_CALORIES = "calories"
@@ -71,6 +72,7 @@ class RideDbHelper(context: Context) :
                     "${RidesEntry.COLUMN_END_TIME} TEXT," +
                     "${RidesEntry.COLUMN_TOTAL_DISTANCE_KM} REAL," +
                     "${RidesEntry.COLUMN_AVG_VELOCITY_KMH} REAL," +
+                    "${RidesEntry.COLUMN_AVG_ALTITUDE} REAL," +
                     "${RidesEntry.COLUMN_AVG_POWER} REAL," +
                     "${RidesEntry.COLUMN_AVG_CADENCE} REAL," +
                     "${RidesEntry.COLUMN_CALORIES} REAL)"
@@ -282,6 +284,7 @@ class RideDbHelper(context: Context) :
                         // Atualiza o map com os novos valores
                         map[RidesEntry.COLUMN_TOTAL_DISTANCE_KM] = stats["total_distance_km"]
                         map[RidesEntry.COLUMN_AVG_VELOCITY_KMH] = stats["avg_velocity_kmh"]
+                        map[RidesEntry.COLUMN_AVG_ALTITUDE] = stats["avg_altitude"]
                         map[RidesEntry.COLUMN_AVG_POWER] = stats["avg_power"]
                         map[RidesEntry.COLUMN_AVG_CADENCE] = stats["avg_cadence"]
                         map[RidesEntry.COLUMN_CALORIES] = stats["calories"]
@@ -332,6 +335,7 @@ class RideDbHelper(context: Context) :
 
         var totalDistanceKm = 0.0
         val velocities = mutableListOf<Double>()
+        val altitudes = mutableListOf<Double>()
         val powers = mutableListOf<Double>()
         val cadences = mutableListOf<Double>()
         var totalCalories = 0.0
@@ -448,6 +452,7 @@ class RideDbHelper(context: Context) :
         val durationHours = durationSec / 3600.0
 
         val avgVelocityKmh = if (velocities.isNotEmpty()) velocities.average() else 0.0
+        val avgAltitude = if (altitudes.isNotEmpty()) altitudes.average() else 0.0
         val avgPower = if (powers.isNotEmpty()) powers.average() else 0.0
         val avgCadence = if (cadences.isNotEmpty()) cadences.average() else 0.0
 
@@ -460,6 +465,7 @@ class RideDbHelper(context: Context) :
             "start_time" to (startTime?.let { outputDateFormat.format(Date(it)) } ?: getCurrentTimestamp()),
             "end_time" to (endTime?.let { outputDateFormat.format(Date(it)) } ?: getCurrentTimestamp()),
             "total_distance_km" to totalDistanceKm,
+            "avg_altitude" to avgAltitude,
             "avg_velocity_kmh" to avgVelocityKmh,
             "avg_power" to avgPower,
             "avg_cadence" to avgCadence,
@@ -482,6 +488,7 @@ class RideDbHelper(context: Context) :
 
             stats["end_time"]?.let { put(RidesEntry.COLUMN_END_TIME, it as String) }
             stats["total_distance_km"]?.let { put(RidesEntry.COLUMN_TOTAL_DISTANCE_KM, it as Double) }
+            stats["avg_altitude"]?.let { put(RidesEntry.COLUMN_AVG_ALTITUDE, it as Double) }
             stats["avg_velocity_kmh"]?.let { put(RidesEntry.COLUMN_AVG_VELOCITY_KMH, it as Double) }
             stats["avg_power"]?.let { put(RidesEntry.COLUMN_AVG_POWER, it as Double) }
             stats["avg_cadence"]?.let { put(RidesEntry.COLUMN_AVG_CADENCE, it as Double) }
@@ -544,5 +551,181 @@ class RideDbHelper(context: Context) :
         val db = writableDatabase
         db.delete(RidesEntry.TABLE_NAME, "${RidesEntry.COLUMN_RIDE_ID} = ?", arrayOf(rideId.toString()))
         // TelemetryData will be deleted automatically due to ON DELETE CASCADE
+    }
+
+    /**
+     * Calculates max and average values for speed, cadence, power, and altitude for a ride.
+     */
+    fun getActivityStatistics(rideId: Long): Map<String, Any?>? {
+        val db = this.readableDatabase
+
+        val cursor = db.query(
+            TelemetryEntry.TABLE_NAME,
+            arrayOf(
+                TelemetryEntry.COLUMN_GPS_SPEED,
+                TelemetryEntry.COLUMN_CADENCE,
+                TelemetryEntry.COLUMN_POWER,
+                TelemetryEntry.COLUMN_ALTITUDE,
+                TelemetryEntry.COLUMN_GPS_TIMESTAMP
+            ),
+            "${TelemetryEntry.COLUMN_RIDE_ID} = ?",
+            arrayOf(rideId.toString()),
+            null, null,
+            "${TelemetryEntry.COLUMN_GPS_TIMESTAMP} ASC"
+        )
+
+        if (!cursor.moveToFirst()) {
+            cursor.close()
+            return null
+        }
+
+        val speeds = mutableListOf<Double>()
+        val cadences = mutableListOf<Double>()
+        val powers = mutableListOf<Double>()
+        val altitudes = mutableListOf<Double>()
+        val timestamps = mutableListOf<Long>()
+
+        cursor.use {
+            do {
+                // Speed
+                val speedIdx = it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_GPS_SPEED)
+                if (!it.isNull(speedIdx)) {
+                    speeds.add(it.getDouble(speedIdx))
+                }
+
+                // Cadence
+                val cadIdx = it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_CADENCE)
+                if (!it.isNull(cadIdx)) {
+                    cadences.add(it.getDouble(cadIdx))
+                }
+
+                // Power
+                val powerIdx = it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_POWER)
+                if (!it.isNull(powerIdx)) {
+                    powers.add(it.getDouble(powerIdx))
+                }
+
+                // Altitude
+                val altIdx = it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_ALTITUDE)
+                if (!it.isNull(altIdx)) {
+                    altitudes.add(it.getDouble(altIdx))
+                }
+
+                // Timestamp for data points
+                val tsIdx = it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_GPS_TIMESTAMP)
+                if (!it.isNull(tsIdx)) {
+                    val timestampStr = it.getString(tsIdx)
+                    try {
+                        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS", Locale.getDefault())
+                        val timestamp = dateFormat.parse(timestampStr)?.time ?: System.currentTimeMillis()
+                        timestamps.add(timestamp)
+                    } catch (e: Exception) {
+                        // Fallback timestamp
+                        timestamps.add(System.currentTimeMillis())
+                    }
+                }
+
+            } while (it.moveToNext())
+        }
+
+        // Calculate max and avg values
+        val maxSpeed = if (speeds.isNotEmpty()) speeds.maxOrNull() ?: 0.0 else 0.0
+        val avgSpeed = if (speeds.isNotEmpty()) speeds.average() else 0.0
+
+        val maxCadence = if (cadences.isNotEmpty()) cadences.maxOrNull() ?: 0.0 else 0.0
+        val avgCadence = if (cadences.isNotEmpty()) cadences.average() else 0.0
+
+        val maxPower = if (powers.isNotEmpty()) powers.maxOrNull() ?: 0.0 else 0.0
+        val avgPower = if (powers.isNotEmpty()) powers.average() else 0.0
+
+        val maxAltitude = if (altitudes.isNotEmpty()) altitudes.maxOrNull() ?: 0.0 else 0.0
+        val avgAltitude = if (altitudes.isNotEmpty()) altitudes.average() else 0.0
+
+        return mapOf(
+            "max_speed" to maxSpeed,
+            "avg_speed" to avgSpeed,
+            "max_cadence" to maxCadence,
+            "avg_cadence" to avgCadence,
+            "max_power" to maxPower,
+            "avg_power" to avgPower,
+            "max_altitude" to maxAltitude,
+            "avg_altitude" to avgAltitude
+        )
+    }
+
+    /**
+     * Returns raw telemetry data formatted for Flutter charts.
+     */
+    fun getActivityChartData(rideId: Long): List<Map<String, Any?>>? {
+        val db = this.readableDatabase
+
+        val cursor = db.query(
+            TelemetryEntry.TABLE_NAME,
+            arrayOf(
+                TelemetryEntry.COLUMN_GPS_SPEED,
+                TelemetryEntry.COLUMN_CADENCE,
+                TelemetryEntry.COLUMN_POWER,
+                TelemetryEntry.COLUMN_ALTITUDE,
+                TelemetryEntry.COLUMN_GPS_TIMESTAMP
+            ),
+            "${TelemetryEntry.COLUMN_RIDE_ID} = ?",
+            arrayOf(rideId.toString()),
+            null, null,
+            "${TelemetryEntry.COLUMN_GPS_TIMESTAMP} ASC"
+        )
+
+        if (!cursor.moveToFirst()) {
+            cursor.close()
+            return null
+        }
+
+        val chartData = mutableListOf<Map<String, Any?>>()
+
+        cursor.use {
+            do {
+                val timestampStr = it.getString(it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_GPS_TIMESTAMP))
+                val timestamp = try {
+                    val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS", Locale.getDefault())
+                    dateFormat.parse(timestampStr)?.time ?: System.currentTimeMillis()
+                } catch (e: Exception) {
+                    System.currentTimeMillis()
+                }
+
+                val speed = if (!it.isNull(it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_GPS_SPEED))) {
+                    it.getDouble(it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_GPS_SPEED))
+                } else {
+                    0.0
+                }
+
+                val cadence = if (!it.isNull(it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_CADENCE))) {
+                    it.getDouble(it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_CADENCE))
+                } else {
+                    0.0
+                }
+
+                val power = if (!it.isNull(it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_POWER))) {
+                    it.getDouble(it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_POWER))
+                } else {
+                    0.0
+                }
+
+                val altitude = if (!it.isNull(it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_ALTITUDE))) {
+                    it.getDouble(it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_ALTITUDE))
+                } else {
+                    0.0
+                }
+
+                chartData.add(mapOf(
+                    "timestamp" to timestamp,
+                    "speed" to speed,
+                    "cadence" to cadence,
+                    "power" to power,
+                    "altitude" to altitude
+                ))
+
+            } while (it.moveToNext())
+        }
+
+        return chartData
     }
 }

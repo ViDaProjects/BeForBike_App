@@ -1,19 +1,12 @@
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'l10n/app_localizations.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stack_trace/stack_trace.dart' as stack_trace;
 
-import 'l10n/support_locale.dart';
-import 'presentation/common/core/services/text_to_speech_service.dart';
 import 'presentation/common/core/utils/color_utils.dart';
 import 'core/utils/audio_service.dart';
 import 'presentation/home/screens/home_screen.dart';
 import 'presentation/my_activities/screens/activity_list_screen.dart';
-import 'presentation/new_activity/screens/sum_up_screen.dart';
 
 /// Global navigator key to access the navigator from anywhere in the app.
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -80,8 +73,6 @@ class MyAppViewModel {
 
   /// Initializes the app, e.g., initializes services.
   void init() async {
-    ref.read(textToSpeechService).init();
-    await ref.read(permissionService).requestAllPermissions();
     await _checkBluetoothStatus();
   }
 
@@ -118,12 +109,6 @@ class MyAppViewModel {
     }
   }
 
-  /// Retrieves the localized configuration based on the current locale.
-  Future<AppLocalizations> getLocalizedConf() async {
-    final lang = ui.PlatformDispatcher.instance.locale.languageCode;
-    final country = ui.PlatformDispatcher.instance.locale.countryCode;
-    return await AppLocalizations.delegate.load(Locale(lang, country));
-  }
 }
 
 /// The main app widget.
@@ -135,7 +120,6 @@ class MyApp extends HookConsumerWidget {
     return MaterialApp(
       initialRoute: '/',
       routes: {
-        '/sumup': (context) => const SumUpScreen(),
         '/activity_list': (context) => ActivityListScreen()
       },
       navigatorKey: navigatorKey,
@@ -228,14 +212,6 @@ class MyApp extends HookConsumerWidget {
             const BottomSheetThemeData(backgroundColor: Color(0xFF252526)),
       ),
       themeMode: themeMode,
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: L10n.support,
-      locale: const Locale('en'), // Force English language
       home: home,
     );
   }

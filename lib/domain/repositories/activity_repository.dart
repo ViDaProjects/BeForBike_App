@@ -6,9 +6,6 @@ abstract class ActivityRepository {
   /// Retrieves a page of activities.
   Future<EntityPage<Activity>> getActivities({int pageNumber});
 
-  /// Retrieves a page of my activities and my friends.
-  Future<EntityPage<Activity>> getMyAndMyFriendsActivities({int pageNumber});
-
   /// Retrieves a page of a user activities.
   Future<EntityPage<Activity>> getUserActivities(String userId,
       {int pageNumber});

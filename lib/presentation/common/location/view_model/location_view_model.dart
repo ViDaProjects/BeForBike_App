@@ -5,8 +5,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../../data/model/request/location_request.dart';
-import '../../metrics/view_model/metrics_view_model.dart';
-import '../../timer/viewmodel/timer_view_model.dart';
 import 'state/location_state.dart';
 
 final locationViewModelProvider =
@@ -30,8 +28,6 @@ class LocationViewModel extends Notifier<LocationState> {
 
   /// Starts getting the user's location updates.
   Future<void> startGettingLocation() async {
-    final metricsProvider = ref.read(metricsViewModelProvider.notifier);
-
     var permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
@@ -74,22 +70,6 @@ class LocationViewModel extends Notifier<LocationState> {
     _positionStream ??=
         Geolocator.getPositionStream().listen((Position position) {
       if (_positionStream != null) {
-
-        final timerProvider = ref.read(timerViewModelProvider.notifier);
-        if (timerProvider.isTimerRunning() && timerProvider.hasTimerStarted()) {
-          metricsProvider.updateMetrics();
-
-          final positions = List<LocationRequest>.from(state.savedPositions);
-          positions.add(
-            LocationRequest(
-              datetime: DateTime.now(),
-              latitude: position.latitude,
-              longitude: position.longitude,
-            ),
-          );
-          state = state.copyWith(savedPositions: positions);
-        }
-
         state = state.copyWith(
           currentPosition: position,
           lastPosition: state.currentPosition ?? position,

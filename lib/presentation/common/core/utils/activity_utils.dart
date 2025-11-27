@@ -1,8 +1,6 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../../../../core/utils/storage_utils.dart';
 import '../../../../domain/entities/activity.dart';
-import '../../../../domain/entities/user.dart';
 import '../enums/infinite_scroll_list.enum.dart';
 import '../widgets/view_model/infinite_scroll_list_view_model.dart';
 
@@ -61,17 +59,6 @@ class ActivityUtils {
         InfiniteScrollListEnum.myActivities.toString(),
         updatedActivity,
         action);
-    await _updateActivityList(ref, InfiniteScrollListEnum.community.toString(),
-        updatedActivity, action);
-
-    User? currentUser = await StorageUtils.getUser();
-    if (currentUser != null) {
-      await _updateActivityList(
-          ref,
-          '${InfiniteScrollListEnum.profile}_${currentUser.id}',
-          updatedActivity,
-          action);
-    }
   }
 
   static Future<void> _updateActivityList(Ref ref, String listType,

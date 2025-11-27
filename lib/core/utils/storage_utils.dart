@@ -1,9 +1,4 @@
-import 'dart:convert';
-
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../../data/model/response/user_response.dart';
-import '../../domain/entities/user.dart';
 
 /// Utility class for handling the storage using the shared_preferences library.
 class StorageUtils {
@@ -55,36 +50,6 @@ class StorageUtils {
     return prefs.setString('jwt', jwt);
   }
 
-  /// Retrieves the user stored in shared preferences.
-  ///
-  /// Returns [null] if no data is stored.
-  static Future<User?> getUser() async {
-    final prefs = await SharedPreferences.getInstance();
-    String? userString = prefs.getString('user');
-    if (userString != null) {
-      dynamic json = jsonDecode(userString);
-      UserResponse response = UserResponse.fromMap(json);
-      User user = response.toEntity();
-      return Future.value(user);
-    }
-    return Future.value(null);
-  }
-
-  /// Removes the stored user from shared preferences.
-  ///
-  /// Returns [true] if the user was successfully removed, otherwise [false].
-  static Future<bool> removeUser() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.remove('user');
-  }
-
-  /// Stores the user in shared preferences.
-  ///
-  /// Returns [true] if the user was successfully stored, otherwise [false].
-  static Future<bool> setUser(UserResponse user) async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.setString('user', jsonEncode(user.toJson()));
-  }
 
   /// Removes the cached data of an url api from shared preferences.
   ///

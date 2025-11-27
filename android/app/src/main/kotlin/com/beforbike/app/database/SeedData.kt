@@ -6,7 +6,7 @@ import com.beforbike.app.database.RideDbHelper
 
 object SeedData {
 
-    private const val SAMPLE_RIDE_ID = 999L
+    private const val SAMPLE_RIDE_ID = 777L
     private const val RIDES_TABLE_NAME = "Rides"
     private const val TELEMETRY_TABLE_NAME = "TelemetryData"
     private const val COLUMN_RIDE_ID = "ride_id"

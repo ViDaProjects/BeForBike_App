@@ -1,40 +1,41 @@
 import 'package:equatable/equatable.dart';
 
-/// Represents a request object for a location.
+/// Represents a location request object.
 class LocationRequest extends Equatable {
-  /// The id of the location.
-  final String? id;
-
-  /// The datetime of the location.
-  final DateTime datetime;
-
   /// The latitude of the location.
   final double latitude;
 
   /// The longitude of the location.
   final double longitude;
 
-  /// Constructs a LocationRequest object with the given parameters.
+  /// The datetime of the location.
+  final DateTime datetime;
+
+  /// Creates a new [LocationRequest] instance.
   const LocationRequest({
-    this.id,
-    required this.datetime,
     required this.latitude,
     required this.longitude,
+    required this.datetime,
   });
 
-  @override
-  List<Object?> get props => [datetime, latitude, longitude];
+  /// Creates a [LocationRequest] from a map.
+  factory LocationRequest.fromMap(Map<String, dynamic> map) {
+    return LocationRequest(
+      latitude: map['latitude'] as double,
+      longitude: map['longitude'] as double,
+      datetime: DateTime.fromMillisecondsSinceEpoch(map['datetime'] as int),
+    );
+  }
 
-  /// Converts the LocationRequest object to a JSON map.
+  /// Converts the [LocationRequest] to a map.
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
-      'datetime': datetime.toIso8601String(),
       'latitude': latitude,
       'longitude': longitude,
+      'datetime': datetime.millisecondsSinceEpoch,
     };
   }
 
   @override
-  bool get stringify => true;
+  List<Object?> get props => [latitude, longitude, datetime];
 }

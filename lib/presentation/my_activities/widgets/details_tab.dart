@@ -4,8 +4,6 @@ import 'package:intl/intl.dart';
 
 import '../../../domain/entities/activity.dart';
 import '../../common/core/utils/color_utils.dart';
-import '../../common/metrics/widgets/metrics.dart';
-import '../../common/timer/widgets/timer_text.dart';
 import '../view_model/activity_details_view_model.dart';
 
 /// The tab that displays details of a specific activity.
@@ -87,16 +85,36 @@ class DetailsTab extends HookConsumerWidget {
           _buildDateTimeInfo(displayedActivity),
           const SizedBox(height: 20),
           Center(
-            child: TimerText(timeInMs: displayedActivity.time.toInt()),
+            child: Text(
+              'Duration: ${displayedActivity.time ~/ 3600}:${((displayedActivity.time % 3600) ~/ 60).toString().padLeft(2, '0')}:${(displayedActivity.time % 60).toString().padLeft(2, '0')}',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
           ),
           const SizedBox(height: 15),
-          Metrics(
-            distance: displayedActivity.distance,
-            speed: displayedActivity.speed,
-            cadence: displayedActivity.cadence,
-            calories: displayedActivity.calories,
-            power: displayedActivity.power,
-            altitude: displayedActivity.altitude,
+          Container(
+            padding: const EdgeInsets.all(16),
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: ColorUtils.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withValues(alpha: 0.1),
+                  spreadRadius: 1,
+                  blurRadius: 5,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                Text('Speed: ${displayedActivity.speed.toStringAsFixed(1)} km/h'),
+                Text('Cadence: ${displayedActivity.cadence.toStringAsFixed(0)} rpm'),
+                Text('Power: ${displayedActivity.power.toStringAsFixed(0)} W'),
+                Text('Altitude: ${displayedActivity.altitude.toStringAsFixed(0)} m'),
+                Text('Calories: ${displayedActivity.calories.toStringAsFixed(0)} kcal'),
+              ],
+            ),
           ),
           const SizedBox(height: 20),
           // Activity summary information

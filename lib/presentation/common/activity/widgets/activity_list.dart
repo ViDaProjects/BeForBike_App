@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:be_for_bike/l10n/app_localizations.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -123,7 +122,7 @@ class ActivityList extends HookConsumerWidget {
             child: ExpansionTile(
                 tilePadding: const EdgeInsets.fromLTRB(15, 0, 15, 0),
                 title: Text(
-                  '${_getMonthName(monthActivities.first.startDatetime, AppLocalizations.of(context)!.localeName)} ${monthActivities.first.startDatetime.year}',
+                  '${_getMonthName(monthActivities.first.startDatetime, 'en')} ${monthActivities.first.startDatetime.year}',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).textTheme.bodyLarge?.color,

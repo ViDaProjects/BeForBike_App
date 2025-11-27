@@ -7,7 +7,6 @@ import '../../../../main.dart';
 import '../../../home/view_model/home_view_model.dart';
 import '../../../my_activities/screens/activity_details_screen.dart';
 import '../../../my_activities/view_model/activity_list_view_model.dart';
-import '../../user/view_model/profile_picture_view_model.dart';
 import 'state/activity_item_state.dart';
 
 /// Provider for the activity item view model.
@@ -33,12 +32,6 @@ class ActivityItemViewModel extends Notifier<ActivityItemState> {
     state = state.copyWith(activity: activity);
   }
 
-  /// Get the profile picture of the user
-  void getProfilePicture(String userId) async {
-    ref
-        .read(profilePictureViewModelProvider(userId).notifier)
-        .getProfilePicture(userId);
-  }
 
   /// Retrieves the details of an activity.
   Future<Activity> getActivityDetails(Activity activity) async {

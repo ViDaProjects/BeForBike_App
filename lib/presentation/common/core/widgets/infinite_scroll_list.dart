@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:be_for_bike/l10n/app_localizations.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../../core/debouncer.dart';
@@ -73,7 +72,7 @@ class InfiniteScrollList extends HookConsumerWidget {
         padding: const EdgeInsets.all(8.0),
         child: Center(
           child: Text(
-            AppLocalizations.of(context)!.load_more,
+            'Load More',
             style: TextStyle(
               color: ColorUtils.main,
               fontWeight: FontWeight.bold,

@@ -1,1 +1,1 @@
-enum InfiniteScrollListEnum { community, myActivities, profile }
+enum InfiniteScrollListEnum { myActivities }

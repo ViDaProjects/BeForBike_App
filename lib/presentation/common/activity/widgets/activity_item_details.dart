@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:be_for_bike/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../domain/entities/activity.dart';
@@ -18,16 +17,15 @@ class ActivityItemDetails extends StatelessWidget {
 
   Widget buildActivityDetails(
       BuildContext context,
-      AppLocalizations appLocalizations,
       String formattedDate,
       String formattedTime) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '${appLocalizations.date_pronoun} $formattedDate ${appLocalizations.hours_pronoun} $formattedTime',
+          'On $formattedDate at $formattedTime',
           style: TextStyle(color: isDarkMode ? Colors.white70 : ColorUtils.greyDarker, fontFamily: 'Avenir'),
         ),
         const SizedBox(height: 8),
@@ -55,7 +53,6 @@ class ActivityItemDetails extends StatelessWidget {
     final formattedDate =
         DateFormat('dd/MM/yyyy').format(activity.startDatetime);
     final formattedTime = DateFormat('HH:mm').format(activity.startDatetime);
-    final appLocalizations = AppLocalizations.of(context)!;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
@@ -81,7 +78,7 @@ class ActivityItemDetails extends StatelessWidget {
           Padding(
             padding: EdgeInsets.only(left: 0, bottom: displayUserName ? 10 : 0),
             child: buildActivityDetails(
-                context, appLocalizations, formattedDate, formattedTime),
+                context, formattedDate, formattedTime),
           ),
         ],
       ),
