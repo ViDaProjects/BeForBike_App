@@ -126,7 +126,7 @@ class MyApp extends HookConsumerWidget {
       initialRoute: '/',
       routes: {'/activity_list': (context) => ActivityListScreen()},
       navigatorKey: navigatorKey,
-      title: 'Be for Bike',
+      title: 'BeForBike',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         textSelectionTheme: TextSelectionThemeData(

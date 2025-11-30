@@ -1,4 +1,4 @@
-# Be for Bike 🚴‍♂️
+# BeForBike
 
 A comprehensive cycling computer app that combines Flutter technology and native Android to provide an extensive cycling activity tracking experience.
 
@@ -21,46 +21,50 @@ This is a project developed as part of Integration Workshop 3, demonstrating the
 ### 🗺️ Route Visualization
 - **Interactive map**: Route visualization using OpenStreetMap
 - **Elevation data**: Altitude analysis along the route
-- **Route export**: Ability to save and share routes
 
 ### 🔧 Technical Features
-- **BLE Integration**: Connectivity with Bluetooth sensors (speedometer, cadence meter, power meter)
-- **Local database**: Efficient storage using SQLite on Android
+- **BLE Integration**: Native Android Bluetooth LE server implementation for sensor connectivity
+- **Local database**: Efficient storage using SQLite on Android with statistics caching
+- **Audio & Haptic Feedback**: Button interaction sounds and vibration patterns
 - **Seed data**: Sample data for demonstration and testing
 - **Cross-platform**: Android support (iOS disabled in this project)
 
 ## 🛠️ Technologies Used
 
 ### Frontend (Flutter)
-- **Framework**: Flutter 3.35.7+
-- **Language**: Dart 3.9.2+
+- **Framework**: Flutter 3.38.3+
+- **Language**: Dart 3.10.1+
 - **State Management**: Riverpod + Hooks
 - **UI Components**:
   - `fl_chart`: Interactive charts
+  - `syncfusion_flutter_charts`: Advanced charting library
   - `flutter_map`: Maps with OpenStreetMap
   - `google_nav_bar`: Bottom navigation bar
 - **Utilities**:
   - `geolocator`: Location services
   - `permission_handler`: Permission management
   - `shared_preferences`: Local storage
-  - `image_picker/cropper`: Image manipulation
+  - `audioplayers`: Audio playback
+  - `vibration`: Device vibration
+  - `wakelock_plus`: Screen wake lock
 
 ### Backend (Native Android)
-- **Language**: Kotlin 9.1.0+
+- **SDK**: Gradle 9.2.1+
 - **Java**: JDK 25+
 - **Database**: SQLite with Room
-- **BLE**: Bluetooth device communication
+- **BLE**: Native Android Bluetooth LE implementation
 - **Services**: Background processing and statistics calculations
 
 ### Integration
-- **MethodChannel**: Flutter ↔ Android communication
+- **MethodChannel**: Flutter ↔ Android communication for database operations and BLE
 - **Platform Channels**: Data exchange between platforms
+- **Async Operations**: Background processing for performance optimization
 
 ## 🚀 How to Run
 
 ### Prerequisites
-- Flutter SDK 3.35.7 or higher
-- Dart SDK 3.9.2 or higher
+- Flutter SDK 3.38.3 or higher
+- Dart SDK 3.10.1 or higher
 - Android Studio with Android SDK
 - Android device or emulator
 - JDK 25 or higher
@@ -69,12 +73,14 @@ This is a project developed as part of Integration Workshop 3, demonstrating the
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/ViDaProjects/bicycle-computer-app.git
-   cd bicycle-computer-app
+   git clone https://github.com/ViDaProjects/BeForBike_App.git
+   cd BeForBike_App
    ```
 
 2. **Install dependencies**:
    ```bash
+   flutter upgrade
+   flutter pub upgrade
    flutter pub get
    ```
 
@@ -83,9 +89,9 @@ This is a project developed as part of Integration Workshop 3, demonstrating the
    - Sync Gradle
    - Configure a virtual device or connect a physical device
 
-4. **Run the application**:
+4. **Run the application in device**:
    ```bash
-   flutter run
+   flutter run --debug --hot
    ```
 
 ### 🧪 Running Tests
@@ -100,37 +106,6 @@ flutter test --coverage
 # Run code analysis
 flutter analyze
 ```
-
-### � BLE Testing
-
-The project includes comprehensive BLE testing tools for validating data transmission between Windows and Android:
-
-#### Prerequisites
-- Python 3.7 or higher
-- bleak library (`pip install bleak`)
-
-#### Running BLE Tests
-
-```bash
-# Simple test with 10 fixed data points
-python ble_test.py --simple
-
-# Advanced test with realistic cycling data
-python ble_test.py --duration 300 --interval 1
-
-# Test with compression
-python ble_test.py --simple --compressed
-
-# Specify device MAC address
-python ble_test.py --simple --device AA:BB:CC:DD:EE:FF
-```
-
-#### Test Modes
-- **Simple Mode**: 10 fixed data points for quick validation
-- **Advanced Mode**: Realistic cycling simulation with GPS, speed, cadence, and power
-- **Compression**: Optional GZIP compression for bandwidth testing
-
-For detailed documentation, see [BLE_TEST_README.md](BLE_TEST_README.md).
 
 ### �📱 Production Build
 
@@ -148,21 +123,23 @@ flutter build appbundle --release
 bicycle-computer-app/
 ├── android/                    # Native Android code
 │   └── app/src/main/kotlin/com/beforbike/app/
-│       ├── database/          # SQLite and data models
-│       ├── MainActivity.kt    # Android entry point
-│       └── BleServerService.kt # BLE service
-├── lib/                       # Flutter code
-│   ├── core/                  # Utilities and configurations
-│   ├── data/                  # Data layer (repositories, APIs)
-│   ├── domain/                # Business rules (entities, repositories)
-│   ├── l10n/                  # Internationalization
-│   └── presentation/          # User interface
-│       ├── common/           # Shared components
-│       ├── statistics/       # Statistics screen
-│       └── settings/         # Settings
-├── assets/                    # Static resources
-├── test/                      # Unit tests
-└── pubspec.yaml              # Flutter dependencies
+│       ├── database/           # SQLite database and models
+│       ├── MainActivity.kt     # Android entry point and MethodChannel
+│       ├── BleServerService.kt # BLE GATT server implementation
+│       └── GattProfile.kt      # BLE service definitions
+├── lib/                        # Flutter code
+│   ├── core/                   # Utilities and configurations
+│   │   └── utils/              # Audio service, color utils
+│   ├── data/                   # Data layer (repositories, APIs)
+│   ├── domain/                 # Business rules (entities, repositories)
+│   └── presentation/           # User interface
+│       ├── common/             # Shared components and widgets
+│       ├── home/               # Home screen and map view
+│       ├── my_activities/      # Activity list and details
+│       ├── settings/           # Settings screen
+│       └── statistics/         # Statistics and charts
+├── test/                       # Unit tests
+└── pubspec.yaml                # Flutter dependencies
 ```
 
 ## 🔄 Architecture
@@ -175,40 +152,7 @@ The app follows a clean architecture with clear separation of responsibilities:
 - **Platform Layer**: Native Android code for heavy services
 
 ### Data Flow
-1. **Collection**: BLE sensors → Android (SQLite)
-2. **Processing**: Statistics calculations on Android
-3. **Presentation**: Flutter reads data via MethodChannel
-4. **Visualization**: Responsive interface with charts and maps
-
-## 🤝 How to Contribute
-
-1. Fork the project
-2. Create a branch for your feature (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-### 📝 Code Standards
-- Follow the [Flutter Guidelines](https://flutter.dev/docs/development/tools/formatting)
-- Use `flutter analyze` to check code quality
-- Maintain test coverage above 80%
-- Document new features in the README
-
-## 📄 License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
-
-## 👥 Authors
-
-- **Be for Bike Team** - Initial development
-- **Lucas** - Maintenance and improvements
-
-## 🙏 Acknowledgments
-
-- Integration Workshop 3 for the opportunity
-- Flutter community for exceptional documentation
-- Android ecosystem contributors
-
----
-
-**Note**: This project was developed as part of an integration workshop and serves as a technical demonstration of the possibilities of combining Flutter and native Android development.
+1. **Collection**: BLE sensors → Android SQLite database (background processing)
+2. **Processing**: Statistics calculations with caching on Android
+3. **Presentation**: Flutter reads cached data via MethodChannel
+4. **Visualization**: Responsive interface with interactive charts and maps

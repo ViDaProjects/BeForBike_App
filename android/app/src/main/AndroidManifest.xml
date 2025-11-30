@@ -43,7 +43,7 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
    <application
-        android:label="Be for Bike"
+        android:label="BeForBike"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon"
         android:requestLegacyExternalStorage="true"
