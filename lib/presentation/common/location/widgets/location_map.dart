@@ -30,8 +30,8 @@ class LocationMap extends HookConsumerWidget {
     final center = MapUtils.getCenterOfMap(points);
     final zoomLevel = MapUtils.getZoomLevel(points, center);
 
-    // Default to São Paulo if no position is available
-    const defaultLocation = LatLng(-23.5505, -46.6333); // São Paulo coordinates
+    // Default to Curitiba if no position is available
+    const defaultLocation = LatLng(-25.439224, -49.269006); // Curitiba coordinates
 
     // Prioritize current position over saved points for initial center
     final initialCenter = currentPosition ?? (points.isNotEmpty ? center : defaultLocation);

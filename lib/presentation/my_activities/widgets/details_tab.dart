@@ -39,7 +39,7 @@ class DetailsTab extends HookConsumerWidget {
     required DateTime dateTime,
   }) {
     final timeFormat = DateFormat('HH:mm:ss');
-    final dateFormat = DateFormat('dd/MM/yyyy');
+    final dateFormat = DateFormat('MM/dd/yyyy');
 
     return Column(
       children: [
@@ -55,17 +55,11 @@ class DetailsTab extends HookConsumerWidget {
         ),
         Text(
           timeFormat.format(dateTime),
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
         ),
         Text(
           dateFormat.format(dateTime),
-          style: const TextStyle(
-            fontSize: 12,
-            color: Colors.grey,
-          ),
+          style: const TextStyle(fontSize: 12, color: Colors.grey),
         ),
       ],
     );
@@ -108,11 +102,19 @@ class DetailsTab extends HookConsumerWidget {
             ),
             child: Column(
               children: [
-                Text('Speed: ${displayedActivity.speed.toStringAsFixed(1)} km/h'),
-                Text('Cadence: ${displayedActivity.cadence.toStringAsFixed(0)} rpm'),
+                Text(
+                  'Speed: ${displayedActivity.speed.toStringAsFixed(1)} km/h',
+                ),
+                Text(
+                  'Cadence: ${displayedActivity.cadence.toStringAsFixed(0)} rpm',
+                ),
                 Text('Power: ${displayedActivity.power.toStringAsFixed(0)} W'),
-                Text('Altitude: ${displayedActivity.altitude.toStringAsFixed(0)} m'),
-                Text('Calories: ${displayedActivity.calories.toStringAsFixed(0)} kcal'),
+                Text(
+                  'Altitude: ${displayedActivity.altitude.toStringAsFixed(0)} m',
+                ),
+                Text(
+                  'Calories: ${displayedActivity.calories.toStringAsFixed(0)} kcal',
+                ),
               ],
             ),
           ),

@@ -1,18 +1,44 @@
 import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../../core/utils/date_utils.dart';
 import '../../../domain/entities/activity.dart';
 import 'state/statistics_state.dart';
 
 final statisticsViewModelProvider =
     NotifierProvider.autoDispose<StatisticsViewModel, StatisticsState>(
-  () => StatisticsViewModel(),
-);
+      () => StatisticsViewModel(),
+    );
+
+/// Processes chart data in a background isolate to avoid blocking the UI thread.
+List<Map<String, dynamic>> processChartData(List<dynamic> chartData) {
+  return chartData.map((item) {
+    final map = item as Map<dynamic, dynamic>;
+    return {
+      'timestamp':
+          DateUtils.parseUniversalDate(map['timestamp']) ?? DateTime.now(),
+      'speed': _validateValue((map['speed'] as num?)?.toDouble() ?? 0.0),
+      'cadence': _validateValue((map['cadence'] as num?)?.toDouble() ?? 0.0),
+      'power': _validateValue((map['power'] as num?)?.toDouble() ?? 0.0),
+      'altitude': _validateValue((map['altitude'] as num?)?.toDouble() ?? 0.0),
+    };
+  }).toList();
+}
+
+/// Validates a numeric value, returning 0.0 for invalid values.
+double _validateValue(double value) {
+  if (value.isNaN || value.isInfinite || value < 0) {
+    return 0.0;
+  }
+  return value;
+}
 
 class StatisticsViewModel extends Notifier<StatisticsState> {
   static const platform = MethodChannel('com.beforbike.app/database');
-  
+
   Timer? _debounceTimer;
 
   @override
@@ -24,7 +50,7 @@ class StatisticsViewModel extends Notifier<StatisticsState> {
   void setSelectedActivity(Activity? activity) {
     // Cancel any pending debounce timer
     _debounceTimer?.cancel();
-    
+
     // Set a new debounce timer to delay the data loading
     _debounceTimer = Timer(const Duration(milliseconds: 300), () {
       state = state.copyWith(selectedActivity: activity);
@@ -43,32 +69,27 @@ class StatisticsViewModel extends Notifier<StatisticsState> {
 
     try {
       // Get max/avg statistics from database
-      final Map<dynamic, dynamic> stats = await platform.invokeMethod('getActivityData', {
-        'activityId': activityId,
-      }).timeout(const Duration(seconds: 10), onTimeout: () {
-        return <String, dynamic>{};
-      });
+      final Map<dynamic, dynamic> stats = await platform
+          .invokeMethod('getActivityData', {'activityId': activityId})
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              return <String, dynamic>{};
+            },
+          );
 
       // Get raw data for charts
-      final List<dynamic> chartData = await platform.invokeMethod('getActivityChartData', {
-        'activityId': activityId,
-      }).timeout(const Duration(seconds: 10), onTimeout: () {
-        return <dynamic>[];
-      });
+      final List<dynamic> chartData = await platform
+          .invokeMethod('getActivityChartData', {'activityId': activityId})
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              return <dynamic>[];
+            },
+          );
 
-      // Convert chart data to the expected format
-      final activityData = chartData.map((item) {
-        final map = item as Map<dynamic, dynamic>;
-        return {
-          'timestamp': map['timestamp'] != null
-              ? DateTime.fromMillisecondsSinceEpoch(map['timestamp'] as int)
-              : DateTime.now(),
-          'speed': map['speed'] != null ? (map['speed'] as num).toDouble() : 0.0,
-          'cadence': map['cadence'] != null ? (map['cadence'] as num).toDouble() : 0.0,
-          'power': map['power'] != null ? (map['power'] as num).toDouble() : 0.0,
-          'altitude': map['altitude'] != null ? (map['altitude'] as num).toDouble() : 0.0,
-        };
-      }).toList();
+      // Process chart data in background isolate to avoid blocking UI
+      final activityData = await compute(processChartData, chartData);
 
       // Store both statistics and chart data in state
       state = state.copyWith(
@@ -86,14 +107,14 @@ class StatisticsViewModel extends Notifier<StatisticsState> {
     }
   }
 
-
   /// Gets the maximum value for a given data type from pre-calculated statistics.
   double getMaxValue(String dataType) {
     if (state.activityStats.isEmpty) return 0.0;
 
     try {
       final key = 'max_$dataType';
-      return (state.activityStats[key] as num?)?.toDouble() ?? 0.0;
+      final value = (state.activityStats[key] as num?)?.toDouble() ?? 0.0;
+      return _validateValue(value);
     } catch (e) {
       return 0.0;
     }
@@ -105,7 +126,8 @@ class StatisticsViewModel extends Notifier<StatisticsState> {
 
     try {
       final key = 'avg_$dataType';
-      return (state.activityStats[key] as num?)?.toDouble() ?? 0.0;
+      final value = (state.activityStats[key] as num?)?.toDouble() ?? 0.0;
+      return _validateValue(value);
     } catch (e) {
       return 0.0;
     }

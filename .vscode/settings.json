@@ -1,0 +1,99 @@
+{
+    "dart.openDevTools": "flutter",
+    "dart.debugExternalPackageLibraries": false,
+    "dart.debugSdkLibraries": false,
+    "dart.showTodos": true,
+    "dart.analysisExcludedFolders": [
+        ".fvm",
+        ".dart_tool",
+        "build",
+        "android/.gradle",
+        "android/build",
+        "android/app/build",
+        "ios/Pods",
+        "ios/build"
+    ],
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.server.launchMode": "Standard",
+    "kotlin.languageServer.enabled": true,
+    "kotlin.languageServer.path": "",
+    "kotlin.languageServer.debugAttach.enabled": false,
+    "kotlin.compiler.jvm.target": "11",
+    "java.import.gradle.java.home": "",
+    "gradle.nestedProjects": true,
+    "editor.formatOnSave": true,
+    "editor.formatOnType": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll": "explicit",
+        "source.organizeImports": "explicit"
+    },
+    "editor.defaultFormatter": "Dart-Code.dart-code",
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "files.associations": {
+        "*.arb": "json",
+        "gradle.properties": "properties",
+        "local.properties": "properties",
+        "*.gradle": "gradle"
+    },
+    "[dart]": {
+        "editor.defaultFormatter": "Dart-Code.dart-code",
+        "editor.formatOnSave": true,
+        "editor.formatOnType": true
+    },
+    "[kotlin]": {
+        "editor.defaultFormatter": "fwcd.kotlin",
+        "editor.formatOnSave": true
+    },
+    "[java]": {
+        "editor.defaultFormatter": "redhat.java",
+        "editor.formatOnSave": true
+    },
+    "[yaml]": {
+        "editor.defaultFormatter": "redhat.vscode-yaml"
+    },
+    "search.exclude": {
+        "**/.dart_tool": true,
+        "**/build": true,
+        "**/android/.gradle": true,
+        "**/android/build": true,
+        "**/android/app/build": true,
+        "**/ios/Pods": true,
+        "**/ios/build": true,
+        "**/.fvm": true,
+        "**/pubspec.lock": true
+    },
+    "files.exclude": {
+        "**/.dart_tool": true,
+        "**/build": true,
+        "**/android/.gradle": true,
+        "**/android/build": true,
+        "**/android/app/build": true,
+        "**/ios/Pods": true,
+        "**/ios/build": true,
+        "**/.fvm": true
+    },
+    "files.watcherExclude": {
+        "**/.dart_tool/**": true,
+        "**/build/**": true,
+        "**/android/.gradle/**": true,
+        "**/android/build/**": true,
+        "**/android/app/build/**": true,
+        "**/ios/Pods/**": true,
+        "**/ios/build/**": true,
+        "**/.fvm/**": true,
+        "**/pubspec.lock": true
+    },
+    "terminal.integrated.env.windows": {
+        "PATH": "${env:PATH};${workspaceFolder}/android/gradlew"
+    },
+    "git.autofetch": true,
+    "git.enableSmartCommit": true,
+    "emmet.includeLanguages": {
+        "dart": "html"
+    },
+    "dart.completeFunctionCalls": true,
+    "dart.enableSdkFormatter": true,
+    "dart.lineLength": 80
+}

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:stack_trace/stack_trace.dart' as stack_trace;
 
-import 'presentation/common/core/utils/color_utils.dart';
 import 'core/utils/audio_service.dart';
+import 'presentation/common/core/utils/color_utils.dart';
 import 'presentation/home/screens/home_screen.dart';
 import 'presentation/my_activities/screens/activity_list_screen.dart';
 
@@ -14,16 +15,15 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
-    await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-    ]);
+    await initializeDateFormatting('en_US', null);
+    await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
-    // Initialize audio service for button sounds
-    await AudioService().initialize();
+    // Initialize audio service for button sounds - defer to avoid blocking startup
+    Future.microtask(() async {
+      await AudioService().initialize();
+    });
 
-    runApp(
-      const ProviderScope(child: MyApp()),
-    );
+    runApp(const ProviderScope(child: MyApp()));
 
     FlutterError.demangleStackTrace = (StackTrace stack) {
       if (stack is stack_trace.Trace) return stack.vmTrace;
@@ -47,7 +47,9 @@ void main() async {
 }
 
 /// Provider for the theme mode.
-final themeModeProvider = NotifierProvider<ThemeModeNotifier, ThemeMode>(() => ThemeModeNotifier());
+final themeModeProvider = NotifierProvider<ThemeModeNotifier, ThemeMode>(
+  () => ThemeModeNotifier(),
+);
 
 class ThemeModeNotifier extends Notifier<ThemeMode> {
   @override
@@ -81,7 +83,8 @@ class MyAppViewModel {
       const MethodChannel channel = MethodChannel('com.beforbike.ble');
 
       // Check if Bluetooth adapter is enabled
-      final isAdapterEnabled = await channel.invokeMethod('isBluetoothAdapterEnabled') as bool;
+      final isAdapterEnabled =
+          await channel.invokeMethod('isBluetoothAdapterEnabled') as bool;
       debugPrint('Bluetooth adapter enabled: $isAdapterEnabled');
 
       if (!isAdapterEnabled) {
@@ -93,8 +96,11 @@ class MyAppViewModel {
         await Future.delayed(const Duration(seconds: 2));
 
         // Check again
-        final isAdapterEnabledAfter = await channel.invokeMethod('isBluetoothAdapterEnabled') as bool;
-        debugPrint('Bluetooth adapter enabled after request: $isAdapterEnabledAfter');
+        final isAdapterEnabledAfter =
+            await channel.invokeMethod('isBluetoothAdapterEnabled') as bool;
+        debugPrint(
+          'Bluetooth adapter enabled after request: $isAdapterEnabledAfter',
+        );
 
         if (isAdapterEnabledAfter) {
           debugPrint('Bluetooth enabled successfully');
@@ -108,7 +114,6 @@ class MyAppViewModel {
       debugPrint('Error checking Bluetooth status: $e');
     }
   }
-
 }
 
 /// The main app widget.
@@ -119,9 +124,7 @@ class MyApp extends HookConsumerWidget {
   MaterialApp buildMaterialApp(Widget home, ThemeMode themeMode) {
     return MaterialApp(
       initialRoute: '/',
-      routes: {
-        '/activity_list': (context) => ActivityListScreen()
-      },
+      routes: {'/activity_list': (context) => ActivityListScreen()},
       navigatorKey: navigatorKey,
       title: 'Be for Bike',
       debugShowCheckedModeBanner: false,
@@ -133,8 +136,9 @@ class MyApp extends HookConsumerWidget {
         ),
         primaryColor: ColorUtils.main,
         splashColor: ColorUtils.blueGreyDarker,
-        bottomSheetTheme:
-            BottomSheetThemeData(backgroundColor: ColorUtils.transparent),
+        bottomSheetTheme: BottomSheetThemeData(
+          backgroundColor: ColorUtils.transparent,
+        ),
       ),
       darkTheme: ThemeData.dark().copyWith(
         // VS Code Dark Theme colors
@@ -143,9 +147,7 @@ class MyApp extends HookConsumerWidget {
         canvasColor: const Color(0xFF1e1e1e),
 
         // Dialog theme
-        dialogTheme: const DialogThemeData(
-          backgroundColor: Color(0xFF252526),
-        ),
+        dialogTheme: const DialogThemeData(backgroundColor: Color(0xFF252526)),
 
         // App bar and navigation
         appBarTheme: const AppBarTheme(
@@ -158,9 +160,7 @@ class MyApp extends HookConsumerWidget {
         cardTheme: CardThemeData(
           color: const Color(0xFF252526),
           elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           shadowColor: Colors.black.withValues(alpha: 0.3),
         ),
 
@@ -189,9 +189,7 @@ class MyApp extends HookConsumerWidget {
         ),
 
         // Icons
-        iconTheme: const IconThemeData(
-          color: Color(0xFFcccccc),
-        ),
+        iconTheme: const IconThemeData(color: Color(0xFFcccccc)),
 
         // Dividers and borders
         dividerColor: const Color(0xFF454545),
@@ -208,8 +206,9 @@ class MyApp extends HookConsumerWidget {
 
         primaryColor: ColorUtils.main,
         splashColor: ColorUtils.blueGreyDarker,
-        bottomSheetTheme:
-            const BottomSheetThemeData(backgroundColor: Color(0xFF252526)),
+        bottomSheetTheme: const BottomSheetThemeData(
+          backgroundColor: Color(0xFF252526),
+        ),
       ),
       themeMode: themeMode,
       home: home,

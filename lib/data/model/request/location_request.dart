@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../../../core/utils/date_utils.dart' as app_date_utils;
+
 /// Represents a location request object.
 class LocationRequest extends Equatable {
   /// The latitude of the location.
@@ -23,7 +25,7 @@ class LocationRequest extends Equatable {
     return LocationRequest(
       latitude: map['latitude'] as double,
       longitude: map['longitude'] as double,
-      datetime: DateTime.fromMillisecondsSinceEpoch(map['datetime'] as int),
+      datetime: app_date_utils.DateUtils.parseUniversalDate(map['datetime']) ?? DateTime.now(),
     );
   }
 

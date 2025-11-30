@@ -9,16 +9,18 @@ class ActivityItemDetails extends StatelessWidget {
   final Activity activity;
   final Color color;
 
-  const ActivityItemDetails(
-      {super.key,
-      required this.displayUserName,
-      required this.activity,
-      required this.color});
+  const ActivityItemDetails({
+    super.key,
+    required this.displayUserName,
+    required this.activity,
+    required this.color,
+  });
 
   Widget buildActivityDetails(
-      BuildContext context,
-      String formattedDate,
-      String formattedTime) {
+    BuildContext context,
+    String formattedDate,
+    String formattedTime,
+  ) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Column(
@@ -26,13 +28,22 @@ class ActivityItemDetails extends StatelessWidget {
       children: [
         Text(
           'On $formattedDate at $formattedTime',
-          style: TextStyle(color: isDarkMode ? Colors.white70 : ColorUtils.greyDarker, fontFamily: 'Avenir'),
+          style: TextStyle(
+            color: isDarkMode ? Colors.white70 : ColorUtils.greyDarker,
+            fontFamily: 'Avenir',
+          ),
         ),
         const SizedBox(height: 8),
         buildDetailRow(
-            Icons.straighten, '${activity.distance.toStringAsFixed(2)} km', isDarkMode),
+          Icons.straighten,
+          '${activity.distance.toStringAsFixed(2)} km',
+          isDarkMode,
+        ),
         buildDetailRow(
-            Icons.local_fire_department, '${activity.calories.toStringAsFixed(0)} kcal', isDarkMode),
+          Icons.local_fire_department,
+          '${activity.calories.toStringAsFixed(0)} kcal',
+          isDarkMode,
+        ),
       ],
     );
   }
@@ -40,18 +51,28 @@ class ActivityItemDetails extends StatelessWidget {
   Widget buildDetailRow(IconData icon, String text, bool isDarkMode) {
     return Row(
       children: [
-        Icon(icon, color: isDarkMode ? Colors.white60 : ColorUtils.grey, size: 16),
+        Icon(
+          icon,
+          color: isDarkMode ? Colors.white60 : ColorUtils.grey,
+          size: 16,
+        ),
         const SizedBox(width: 8),
-        Text(text,
-            style: TextStyle(color: isDarkMode ? Colors.white60 : ColorUtils.grey, fontFamily: 'Avenir')),
+        Text(
+          text,
+          style: TextStyle(
+            color: isDarkMode ? Colors.white60 : ColorUtils.grey,
+            fontFamily: 'Avenir',
+          ),
+        ),
       ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final formattedDate =
-        DateFormat('dd/MM/yyyy').format(activity.startDatetime);
+    final formattedDate = DateFormat(
+      'MM/dd/yyyy',
+    ).format(activity.startDatetime);
     final formattedTime = DateFormat('HH:mm').format(activity.startDatetime);
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
@@ -77,8 +98,7 @@ class ActivityItemDetails extends StatelessWidget {
           ),
           Padding(
             padding: EdgeInsets.only(left: 0, bottom: displayUserName ? 10 : 0),
-            child: buildActivityDetails(
-                context, formattedDate, formattedTime),
+            child: buildActivityDetails(context, formattedDate, formattedTime),
           ),
         ],
       ),

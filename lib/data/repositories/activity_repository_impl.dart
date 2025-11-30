@@ -5,6 +5,7 @@ import '../../domain/entities/activity.dart';
 import '../../domain/entities/location.dart';
 import '../../domain/entities/page.dart';
 import '../../domain/repositories/activity_repository.dart';
+import '../../core/utils/date_utils.dart' as app_date_utils;
 
 /// Provider for the ActivityRepository implementation.
 final activityRepositoryProvider =
@@ -32,7 +33,6 @@ class ActivityRepositoryImpl extends ActivityRepository {
 
   @override
   Future<EntityPage<Activity>> getUserActivities(String userId, {int pageNumber = 0}) async {
-    // For now, just return regular activities
     return getActivities(pageNumber: pageNumber);
   }
 
@@ -58,8 +58,8 @@ class ActivityRepositoryImpl extends ActivityRepository {
 
     return Activity(
       id: activityMap['id'] as String,
-      startDatetime: DateTime.fromMillisecondsSinceEpoch(activityMap['startDatetime'] as int),
-      endDatetime: DateTime.fromMillisecondsSinceEpoch(activityMap['endDatetime'] as int),
+      startDatetime: app_date_utils.DateUtils.parseUniversalDate(activityMap['startDatetime']) ?? DateTime.now(),
+      endDatetime: app_date_utils.DateUtils.parseUniversalDate(activityMap['endDatetime']) ?? DateTime.now(),
       distance: (activityMap['distance'] as num).toDouble(),
       speed: (activityMap['speed'] as num).toDouble(),
       cadence: (activityMap['cadence'] as num).toDouble(),
@@ -78,7 +78,7 @@ class ActivityRepositoryImpl extends ActivityRepository {
       return locationsData.map((locationMap) {
         return Location(
           id: locationMap['id'] as String,
-          datetime: DateTime.fromMillisecondsSinceEpoch(locationMap['datetime'] as int),
+          datetime: app_date_utils.DateUtils.parseUniversalDate(locationMap['datetime']) ?? DateTime.now(),
           latitude: (locationMap['latitude'] as num).toDouble(),
           longitude: (locationMap['longitude'] as num).toDouble(),
         );

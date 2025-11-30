@@ -132,7 +132,7 @@ class CurrentLocationMap extends HookConsumerWidget {
                       onPressed: () {
                         useSatelliteView.value = !useSatelliteView.value;
                       },
-                      tooltip: useSatelliteView.value ? 'Mostrar mapa' : 'Mostrar satélite',
+                      tooltip: useSatelliteView.value ? 'Display map' : 'Display satellite',
                     ),
                   ),
                 ),

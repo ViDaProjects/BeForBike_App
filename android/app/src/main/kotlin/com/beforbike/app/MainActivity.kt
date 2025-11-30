@@ -14,7 +14,7 @@ import android.bluetooth.*
 import android.bluetooth.le.*
 import android.os.ParcelUuid
 import android.util.Log
-import com.beforbike.app.BleServerService // Importe o serviço
+import com.beforbike.app.BleServerService // Import the service
 import com.beforbike.app.database.RideDbHelper
 import com.beforbike.app.database.SeedData
 import java.text.SimpleDateFormat
@@ -22,10 +22,14 @@ import java.util.Locale
 
 class MainActivity: FlutterActivity() {
     private val CHANNEL = "com.beforbike.ble"
+    private val TAG = "MainActivity"
 
-    // Variáveis para a lógica de permissão assíncrona
+    // Enable/disable seed data insertion for testing
+    private val ENABLE_SEED_DATA = true
+
+    // Variables for asynchronous permission logic
     private var permissionRequestResult: MethodChannel.Result? = null
-    private val REQUEST_CODE_PERMISSIONS = 1 // O código de requisição
+    private val REQUEST_CODE_PERMISSIONS = 1 // Permission request code
 
     private lateinit var bluetoothAdapter: BluetoothAdapter
     private var bluetoothLeAdvertiser: BluetoothLeAdvertiser? = null
@@ -37,24 +41,24 @@ class MainActivity: FlutterActivity() {
     private val handler = android.os.Handler(android.os.Looper.getMainLooper())
 
     /**
-     * Callback para quando o usuário responde ao pedido de permissão.
+     * Callback for when the user responds to the permission request.
      */
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults) // Importante
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults) // Important
 
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
             val allGranted = grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }
 
             if (allGranted) {
-                Log.d("BLE", "Todas as permissões foram concedidas pelo usuário.")
-                // Envia o sucesso DE VOLTA para o Flutter
+                Log.d("BLE", "All permissions were granted by the user.")
+                // Sends success BACK to Flutter
                 this.permissionRequestResult?.success(true)
             } else {
-                Log.e("BLE", "Permissões negadas pelo usuário.")
-                // Envia um erro DE VOLTA para o Flutter
-                this.permissionRequestResult?.error("PERMISSIONS_DENIED", "Usuário negou as permissões", null)
+                Log.e("BLE", "Permissions denied by user.")
+                // Sends an error BACK to Flutter
+                this.permissionRequestResult?.error("PERMISSIONS_DENIED", "User denied the permissions", null)
             }
-            // Limpa o 'result' para a próxima vez
+            // Clears the 'result' for next time
             this.permissionRequestResult = null
         }
     }
@@ -63,17 +67,40 @@ class MainActivity: FlutterActivity() {
         super.onCreate(savedInstanceState)
         dbHelper = RideDbHelper(this)
 
-        // Enable seed data: uncomment next line to insert sample ride for testing
-        // SeedData.insertSampleRide(applicationContext)
+        // Enable seed data - run asynchronously to avoid blocking UI thread
+        if (ENABLE_SEED_DATA) {
+            Log.d("MainActivity", "ENABLE_SEED_DATA is true, scheduling insertSampleRide on background thread")
+            // Run seed data insertion on background thread to avoid blocking UI
+            Thread {
+                try {
+                    SeedData.insertSampleRide(applicationContext)
+                    Log.d("MainActivity", "Seed data insertion completed on background thread")
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "Error inserting seed data", e)
+                }
+            }.start()
+        } else {
+            Log.d("MainActivity", "ENABLE_SEED_DATA is false, skipping seed data")
+        }
 
         val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         bluetoothAdapter = bluetoothManager.adapter
         bluetoothLeAdvertiser = bluetoothAdapter.bluetoothLeAdvertiser
 
-        // <<< MUDANÇA: Inicia o serviço SOMENTE se ele não estiver rodando (usando a flag estática)
+        // Starts the service ONLY if it's not running (using the static flag)
         if (bluetoothAdapter.isEnabled && !BleServerService.isServiceRunning) {
-            Log.d("BLE", "Starting BLE service automatically on app launch")
-            startBleServerService()
+            Log.d("BLE", "Scheduling BLE service start on background thread to avoid blocking UI")
+            // Start BLE service on background thread to avoid blocking main thread
+            Thread {
+                try {
+                    Thread.sleep(100) // Small delay to let UI initialize first
+                    val intent = Intent(applicationContext, BleServerService::class.java)
+                    startService(intent)
+                    Log.d("BLE", "BLE service started on background thread")
+                } catch (e: Exception) {
+                    Log.e("BLE", "Error starting BLE service", e)
+                }
+            }.start()
         } else if (BleServerService.isServiceRunning) {
             Log.d("BLE", "Service already running, no need to start automatically.")
         }
@@ -81,67 +108,130 @@ class MainActivity: FlutterActivity() {
         MethodChannel(flutterEngine?.dartExecutor?.binaryMessenger!!, "com.beforbike.app/database").setMethodCallHandler { call, result ->
             when (call.method) {
                 "getAllActivities" -> {
-                    val rideIds = dbHelper.getAllRideIds()
-                    val activities = mutableListOf<Map<String, Any>>()
-                    for (id in rideIds) {
-                        val data = dbHelper.getRideSummary(id)
-                        if (data != null) {
-                            val activity = mapRideToActivity(id, data)
-                            activities.add(activity)
+                    Thread {
+                        try {
+                            val rideIds = dbHelper.getAllRideIds()
+                            val activities = mutableListOf<Map<String, Any>>()
+                            for (id in rideIds) {
+                                val data = dbHelper.getRideSummary(id)
+                                if (data != null) {
+                                    val activity = mapRideToActivity(id, data)
+                                    activities.add(activity)
+                                }
+                            }
+                            runOnUiThread { result.success(activities) }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error getting all activities: ${e.message}")
+                            runOnUiThread { result.error("ACTIVITIES_ERROR", e.message, null) }
                         }
-                    }
-                    result.success(activities)
+                    }.start()
                 }
                 "getActivityLocations" -> {
                     val activityId = call.argument<String>("activityId") ?: ""
                     val rideId = activityId.toLongOrNull() ?: 0L
-                    val telemetryData = dbHelper.getRideTelemetryData(rideId)
-                    val locations = telemetryData.mapNotNull { data ->
-                        val timestampStr = data["gps_timestamp"] as? String
-                        val lat = data["latitude"] as? Double
-                        val lon = data["longitude"] as? Double
-                        if (timestampStr != null && lat != null && lon != null) {
-                            val timestamp = try {
-                                val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
-                                dateFormat.parse(timestampStr)?.time ?: System.currentTimeMillis()
-                            } catch (e: Exception) {
-                                System.currentTimeMillis()
+                    Thread {
+                        try {
+                            val telemetryData = dbHelper.getRideTelemetryData(rideId)
+                            val locations = telemetryData.mapNotNull { data ->
+                                val timestampStr = data["gps_timestamp"] as? String
+                                val lat = data["latitude"] as? Double
+                                val lon = data["longitude"] as? Double
+                                if (timestampStr != null && lat != null && lon != null) {
+                                    val timestamp = try {
+                                        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS", Locale.getDefault())
+                                        dateFormat.parse(timestampStr)?.time ?: System.currentTimeMillis()
+                                    } catch (e: Exception) {
+                                        try {
+                                            val dateFormatFallback = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault())
+                                            dateFormatFallback.parse(timestampStr)?.time ?: System.currentTimeMillis()
+                                        } catch (e2: Exception) {
+                                            try {
+                                                val dateFormatFallbackNoMillis = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+                                                dateFormatFallbackNoMillis.parse(timestampStr)?.time ?: System.currentTimeMillis()
+                                            } catch (e3: Exception) {
+                                                try {
+                                                    val dateFormatSlashes = SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS", Locale.getDefault())
+                                                    dateFormatSlashes.parse(timestampStr)?.time ?: System.currentTimeMillis()
+                                                } catch (e4: Exception) {
+                                                    try {
+                                                        val dateFormatSlashesNoMillis = SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault())
+                                                        dateFormatSlashesNoMillis.parse(timestampStr)?.time ?: System.currentTimeMillis()
+                                                    } catch (e5: Exception) {
+                                                        System.currentTimeMillis()
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    mapOf(
+                                        "id" to "loc_${timestampStr}_${System.currentTimeMillis()}",
+                                        "datetime" to timestamp,
+                                        "latitude" to lat,
+                                        "longitude" to lon
+                                    )
+                                } else null
                             }
-                            mapOf(
-                                "id" to "loc_${timestampStr}_${System.currentTimeMillis()}",
-                                "datetime" to timestamp,
-                                "latitude" to lat,
-                                "longitude" to lon
-                            )
-                        } else null
-                    }
-                    result.success(locations)
+                            runOnUiThread { result.success(locations) }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error getting activity locations: ${e.message}")
+                            runOnUiThread { result.error("LOCATIONS_ERROR", e.message, null) }
+                        }
+                    }.start()
                 }
                 "getActivityData" -> {
                     val activityId = call.argument<String>("activityId") ?: ""
                     val rideId = activityId.toLongOrNull() ?: 0L
-                    val stats = dbHelper.getActivityStatistics(rideId)
-                    if (stats != null) {
-                        result.success(stats)
-                    } else {
-                        result.success(emptyMap<String, Any>())
-                    }
+                    // Run database operation on background thread to avoid blocking UI
+                    Thread {
+                        try {
+                            val stats = dbHelper.getActivityStatistics(rideId)
+                            handler.post {
+                                if (stats != null) {
+                                    result.success(stats)
+                                } else {
+                                    result.success(emptyMap<String, Any>())
+                                }
+                            }
+                        } catch (e: Exception) {
+                            handler.post {
+                                result.success(emptyMap<String, Any>())
+                            }
+                        }
+                    }.start()
                 }
                 "getActivityChartData" -> {
                     val activityId = call.argument<String>("activityId") ?: ""
                     val rideId = activityId.toLongOrNull() ?: 0L
-                    val chartData = dbHelper.getActivityChartData(rideId)
-                    if (chartData != null) {
-                        result.success(chartData)
-                    } else {
-                        result.success(emptyList<Map<String, Any>>())
-                    }
+                    // Run database operation on background thread to avoid blocking UI
+                    Thread {
+                        try {
+                            val chartData = dbHelper.getActivityChartData(rideId)
+                            handler.post {
+                                if (chartData != null) {
+                                    result.success(chartData)
+                                } else {
+                                    result.success(emptyList<Map<String, Any>>())
+                                }
+                            }
+                        } catch (e: Exception) {
+                            handler.post {
+                                result.success(emptyList<Map<String, Any>>())
+                            }
+                        }
+                    }.start()
                 }
                 "deleteActivity" -> {
                     val activityId = call.argument<String>("activityId") ?: ""
                     val rideId = activityId.toLongOrNull() ?: 0L
-                    dbHelper.deleteRide(rideId)
-                    result.success(null)
+                    Thread {
+                        try {
+                            dbHelper.deleteRide(rideId)
+                            runOnUiThread { result.success(null) }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error deleting activity: ${e.message}")
+                            runOnUiThread { result.error("DELETE_ERROR", e.message, null) }
+                        }
+                    }.start()
                 }
                 "sendData" -> {
                     val dataList = call.argument<List<Int>>("data")
@@ -164,16 +254,16 @@ class MainActivity: FlutterActivity() {
 
         MethodChannel(flutterEngine?.dartExecutor?.binaryMessenger!!, CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
-                // <<< MUDANÇA: Lógica de permissão assíncrona
+                // Asynchronous permission logic
                 "requestPermissions" -> {
-                    // 1. Salva o 'result' para responder depois
+                    // 1. Save the 'result' to respond later
                     this.permissionRequestResult = result
-                    // 2. Chama a função que abre a caixa de diálogo
+                    // 2. Call the function that opens the dialog box
                     requestBlePermissions()
-                    // NÃO chame result.success(true) aqui!
+                    // DO NOT call result.success(true) here!
                 }
 
-                // <<< MUDANÇA: Usa a flag estática
+                // Starts the service ONLY if it's not running (using the static flag)
                 "isBleEnabled" -> {
                     result.success(BleServerService.isServiceRunning)
                 }
@@ -236,10 +326,10 @@ class MainActivity: FlutterActivity() {
                     result.success(mac)
                 }
 
-                // <<< MUDANÇA: Usa a flag estática
+                // Starts the service ONLY if it's not running (using the static flag)
                 "setBleEnabled" -> {
                     val enabled = call.argument<Boolean>("enabled") ?: false
-                    val isRunning = BleServerService.isServiceRunning // Usa a nova flag
+                    val isRunning = BleServerService.isServiceRunning // Uses the new flag
 
                     if (enabled && !isRunning) {
                         // Start BLE service if not already running
@@ -253,39 +343,82 @@ class MainActivity: FlutterActivity() {
                     result.success(true)
                 }
                 "getAllRideIds" -> {
-                    val ids = dbHelper.getAllRideIds()
-                    result.success(ids)
+                    // Run database operation on background thread to avoid blocking UI
+                    Thread {
+                        try {
+                            val ids = dbHelper.getAllRideIds()
+                            handler.post {
+                                result.success(ids)
+                            }
+                        } catch (e: Exception) {
+                            handler.post {
+                                result.success(emptyList<Long>())
+                            }
+                        }
+                    }.start()
                 }
                 "getRideData" -> {
                     val rideId = call.argument<Long>("rideId") ?: 0L
-                    val data = dbHelper.getRideSummary(rideId)
-                    result.success(data)
+                    // Run database operation on background thread to avoid blocking UI
+                    Thread {
+                        try {
+                            val data = dbHelper.getRideSummary(rideId)
+                            handler.post {
+                                result.success(data)
+                            }
+                        } catch (e: Exception) {
+                            handler.post {
+                                result.success(null)
+                            }
+                        }
+                    }.start()
                 }
                 "calculateRideStatistics" -> {
                     val rideId = call.argument<Long>("rideId") ?: 0L
-                    val stats = dbHelper.calculateRideStatistics(rideId)
-                    result.success(stats)
+                    Thread {
+                        try {
+                            val stats = dbHelper.calculateRideStatistics(rideId)
+                            runOnUiThread { result.success(stats) }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error calculating ride statistics: ${e.message}")
+                            runOnUiThread { result.error("CALC_ERROR", e.message, null) }
+                        }
+                    }.start()
                 }
                 "getRideVelocities" -> {
                     val rideId = call.argument<Long>("rideId") ?: 0L
-                    val telemetryData = dbHelper.getRideTelemetryData(rideId)
-                    val velocities = telemetryData.mapNotNull { data ->
-                        data["gps_speed"] as? Double ?: data["crank_speed"] as? Double
-                    }
-                    result.success(velocities.map { it.toString() }) // Simplified
+                    Thread {
+                        try {
+                            val telemetryData = dbHelper.getRideTelemetryData(rideId)
+                            val velocities = telemetryData.mapNotNull { data ->
+                                data["gps_speed"] as? Double ?: data["crank_speed"] as? Double
+                            }
+                            runOnUiThread { result.success(velocities.map { it.toString() }) }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error getting ride velocities: ${e.message}")
+                            runOnUiThread { result.error("VEL_ERROR", e.message, null) }
+                        }
+                    }.start()
                 }
                 "getRideMapData" -> {
                     val rideId = call.argument<Long>("rideId") ?: 0L
-                    val telemetryData = dbHelper.getRideTelemetryData(rideId)
-                    val mapData = telemetryData.mapNotNull { data ->
-                        val timestamp = data["gps_timestamp"] as? String
-                        val lat = data["latitude"] as? Double
-                        val lon = data["longitude"] as? Double
-                        if (timestamp != null && lat != null && lon != null) {
-                            "$timestamp:$lat:$lon"
-                        } else null
-                    }
-                    result.success(mapData) // Simplified
+                    Thread {
+                        try {
+                            val telemetryData = dbHelper.getRideTelemetryData(rideId)
+                            val mapData = telemetryData.mapNotNull { data ->
+                                val timestamp = data["gps_timestamp"] as? String
+                                val lat = data["latitude"] as? Double
+                                val lon = data["longitude"] as? Double
+                                if (timestamp != null && lat != null && lon != null) {
+                                    "$timestamp:$lat:$lon"
+                                } else null
+                            }
+                            runOnUiThread { result.success(mapData) }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error getting ride map data: ${e.message}")
+                            runOnUiThread { result.error("MAP_ERROR", e.message, null) }
+                        }
+                    }.start()
                 }
                 else -> {
                     result.notImplemented()
@@ -294,55 +427,83 @@ class MainActivity: FlutterActivity() {
         }
     }
 
-    /**
-     * Lógica de permissão corrigida para lidar com o caso "já concedido".
-     */
     private fun requestBlePermissions() {
-        // (O seu código de construir a 'permissions list' continua o mesmo)
-        val permissions = listOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION, // Adicione se necessário
-        ).plus(
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-                listOf(
-                    Manifest.permission.BLUETOOTH_SCAN,
-                    Manifest.permission.BLUETOOTH_CONNECT,
-                    Manifest.permission.BLUETOOTH_ADVERTISE,
-                )
-            } else emptyList()
-        ).plus(
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                listOf(Manifest.permission.POST_NOTIFICATIONS)
-            } else emptyList()
-        )
+        val permissions = mutableListOf<String>()
+
+        // Always include location permissions
+        permissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
+        permissions.add(Manifest.permission.ACCESS_COARSE_LOCATION)
+
+        // Add BLE permissions for Android 12+ (API 31+)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            permissions.add(Manifest.permission.BLUETOOTH_SCAN)
+            permissions.add(Manifest.permission.BLUETOOTH_CONNECT)
+            permissions.add(Manifest.permission.BLUETOOTH_ADVERTISE)
+        } else {
+            // For older Android versions
+            permissions.add(Manifest.permission.BLUETOOTH)
+            permissions.add(Manifest.permission.BLUETOOTH_ADMIN)
+        }
+
+        // Add notification permission for Android 13+ (API 33+)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
 
         val missingPermissions = permissions.filter {
             ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
         }.toTypedArray()
 
         if (missingPermissions.isNotEmpty()) {
-            Log.d("BLE", "Requisitando permissões: ${missingPermissions.joinToString()}")
-            // Use a constante
+            Log.d("BLE", "Requesting permissions: ${missingPermissions.joinToString()}")
+            // Use the constant
             ActivityCompat.requestPermissions(this, missingPermissions, REQUEST_CODE_PERMISSIONS)
         } else {
-            Log.d("BLE", "Todas as permissões já estavam concedidas.")
-            // Se já temos, responda ao Flutter imediatamente
+            Log.d("BLE", "All permissions were already granted.")
+            // If we already have them, respond to Flutter immediately
             this.permissionRequestResult?.success(true)
             this.permissionRequestResult = null
         }
     }
 
     private fun scanAndConnectDevice() {
+        Log.d("BLE", "Starting BLE scan and connect process...")
+
         if (!bluetoothAdapter.isEnabled) {
             Log.e("BLE", "Bluetooth not enabled")
             return
         }
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
-            Log.e("BLE", "No scan permission")
+
+        // Check all required permissions
+        val requiredPermissions = mutableListOf<String>()
+        requiredPermissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            requiredPermissions.add(Manifest.permission.BLUETOOTH_SCAN)
+            requiredPermissions.add(Manifest.permission.BLUETOOTH_CONNECT)
+        } else {
+            requiredPermissions.add(Manifest.permission.BLUETOOTH)
+            requiredPermissions.add(Manifest.permission.BLUETOOTH_ADMIN)
+        }
+
+        val missingPermissions = requiredPermissions.filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+
+        if (missingPermissions.isNotEmpty()) {
+            Log.e("BLE", "Missing required permissions: ${missingPermissions.joinToString()}")
+            // Request permissions again if missing
+            ActivityCompat.requestPermissions(this, missingPermissions.toTypedArray(), REQUEST_CODE_PERMISSIONS)
             return
         }
 
+        Log.d("BLE", "All required permissions granted, starting scan...")
+
         val scanner = bluetoothAdapter.bluetoothLeScanner
+        if (scanner == null) {
+            Log.e("BLE", "Bluetooth LE scanner not available")
+            return
+        }
         val scanCallback: ScanCallback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult) {
                 super.onScanResult(callbackType, result)
@@ -415,13 +576,6 @@ class MainActivity: FlutterActivity() {
         connectedDevice = null
     }
 
-    // <<< MUDANÇA: FUNÇÃO DELETADA >>>
-    /*
-    private fun isBleServiceRunning(): Boolean {
-        // ... Esta função foi removida ...
-    }
-    */
-
     private fun startBleServerService() {
         val intent = Intent(this, BleServerService::class.java)
         startService(intent)
@@ -435,12 +589,19 @@ class MainActivity: FlutterActivity() {
     private fun mapRideToActivity(rideId: Long, data: Map<String, Any?>?): Map<String, Any> {
         val currentTime = System.currentTimeMillis()
 
-        // Parse start and end times from strings
+        // Parse start and end times from strings with multiple format support
         val startTimeStr = data?.get("start_time") as? String
         val endTimeStr = data?.get("end_time") as? String
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
-        val startTime = try { dateFormat.parse(startTimeStr ?: "")?.time ?: currentTime } catch (e: Exception) { currentTime }
-        val endTime = try { dateFormat.parse(endTimeStr ?: "")?.time ?: (currentTime + 1000) } catch (e: Exception) { currentTime + 1000 }
+        
+        val dateFormats = listOf(
+            SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault()),
+            SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS", Locale.getDefault()),
+            SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()),
+            SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault())
+        )
+        
+        val startTime = parseDateWithFallbacks(startTimeStr, dateFormats, currentTime)
+        val endTime = parseDateWithFallbacks(endTimeStr, dateFormats, currentTime + 1000)
 
         return mapOf(
             "id" to rideId.toString(),
@@ -454,6 +615,19 @@ class MainActivity: FlutterActivity() {
             "altitude" to 900.0, // Placeholder
             "time" to ((endTime - startTime) / 1000.0), // Duration in seconds
         )
+    }
+
+    private fun parseDateWithFallbacks(dateStr: String?, formats: List<SimpleDateFormat>, fallback: Long): Long {
+        if (dateStr.isNullOrEmpty()) return fallback
+        
+        for (format in formats) {
+            try {
+                return format.parse(dateStr)?.time ?: fallback
+            } catch (e: Exception) {
+                continue
+            }
+        }
+        return fallback
     }
 
     override fun onDestroy() {

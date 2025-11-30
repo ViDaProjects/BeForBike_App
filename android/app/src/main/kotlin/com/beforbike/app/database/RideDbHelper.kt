@@ -15,15 +15,15 @@ class RideDbHelper(context: Context) :
 
     // --- Schema Definition (2 Tables: Summary + Full Telemetry) ---
     companion object {
-        // INCREMENTADO para 10 para forçar a atualização do schema
-        const val DATABASE_VERSION = 10 //
-        const val DATABASE_NAME = "BikeRides.db"
+        // INCREMENTED to 13 to force schema update
+        const val DATABASE_VERSION = 13 //
+        const val DATABASE_NAME = "BikeRides_v13.db"
         private const val TAG = "RideDbHelper"
 
-        // --- Tabela 1: Rides (Geral/Resumo) ---
+        // --- Table 1: Rides (General/Summary) ---
         object RidesEntry : BaseColumns {
             const val TABLE_NAME = "Rides"
-            const val COLUMN_RIDE_ID = "ride_id" // ID único (ex: 123)
+            const val COLUMN_RIDE_ID = "ride_id" // Unique ID (ex: 123)
             const val COLUMN_START_TIME = "start_time"
             const val COLUMN_END_TIME = "end_time"
             const val COLUMN_TOTAL_DISTANCE_KM = "total_distance_km"
@@ -34,34 +34,34 @@ class RideDbHelper(context: Context) :
             const val COLUMN_CALORIES = "calories"
         }
 
-        // --- Tabela 2: TelemetryData (Dados Brutos COMPLETOS) ---
+        // --- Table 2: TelemetryData ---
         object TelemetryEntry : BaseColumns {
             const val TABLE_NAME = "TelemetryData"
-            const val COLUMN_TELEMETRY_ID = "_id" // Chave primária interna
-            const val COLUMN_RIDE_ID = "ride_id" // Chave estrangeira para Rides
+            const val COLUMN_TELEMETRY_ID = "_id" // Internal primary key
+            const val COLUMN_RIDE_ID = "ride_id" // Foreign key to Rides
 
-            // Campos do PacketInfo (info)
+            // PacketInfo fields (info)
             const val COLUMN_PACKET_DATE = "packet_date"
             const val COLUMN_PACKET_TIME = "packet_time"
 
-            // Campos do GpsData (gps)
-            const val COLUMN_GPS_TIMESTAMP = "gps_timestamp" //
-            const val COLUMN_LATITUDE = "latitude" //
-            const val COLUMN_LONGITUDE = "longitude" //
-            const val COLUMN_ALTITUDE = "altitude" //
-            const val COLUMN_GPS_SPEED = "gps_speed" //
-            const val COLUMN_DIRECTION = "direction" //
-            const val COLUMN_FIX_SATELLITES = "fix_satellites" //
-            const val COLUMN_FIX_QUALITY = "fix_quality" //
+            // GpsData fields (gps)
+            const val COLUMN_GPS_TIMESTAMP = "gps_timestamp"
+            const val COLUMN_LATITUDE = "latitude"
+            const val COLUMN_LONGITUDE = "longitude"
+            const val COLUMN_ALTITUDE = "altitude"
+            const val COLUMN_GPS_SPEED = "gps_speed"
+            const val COLUMN_DIRECTION = "direction"
+            const val COLUMN_FIX_SATELLITES = "fix_satellites"
+            const val COLUMN_FIX_QUALITY = "fix_quality"
 
-            // Campos do CrankData (crank)
-            const val COLUMN_POWER = "power" //
-            const val COLUMN_CADENCE = "cadence" //
-            const val COLUMN_JOULES = "joules" //
-            const val COLUMN_CRANK_CALORIES = "crank_calories" //
-            const val COLUMN_CRANK_SPEED_MS = "crank_speed_ms" //
-            const val COLUMN_CRANK_SPEED = "crank_speed" //
-            const val COLUMN_CRANK_DISTANCE = "crank_distance" //
+            // CrankData fields
+            const val COLUMN_POWER = "power"
+            const val COLUMN_CADENCE = "cadence"
+            const val COLUMN_JOULES = "joules"
+            const val COLUMN_CRANK_CALORIES = "crank_calories"
+            const val COLUMN_CRANK_SPEED_MS = "crank_speed_ms"
+            const val COLUMN_CRANK_SPEED = "crank_speed"
+            const val COLUMN_CRANK_DISTANCE = "crank_distance"
         }
 
         // --- SQL Creation Commands ---
@@ -81,10 +81,10 @@ class RideDbHelper(context: Context) :
             "CREATE TABLE ${TelemetryEntry.TABLE_NAME} (" +
                     "${TelemetryEntry.COLUMN_TELEMETRY_ID} INTEGER PRIMARY KEY AUTOINCREMENT," +
                     "${TelemetryEntry.COLUMN_RIDE_ID} INTEGER NOT NULL," +
-                    // Campos do Info
+                    // Info fields
                     "${TelemetryEntry.COLUMN_PACKET_DATE} TEXT," +
                     "${TelemetryEntry.COLUMN_PACKET_TIME} TEXT," +
-                    // Campos do GpsData
+                    // GpsData fields
                     "${TelemetryEntry.COLUMN_GPS_TIMESTAMP} TEXT," +
                     "${TelemetryEntry.COLUMN_LATITUDE} REAL," +
                     "${TelemetryEntry.COLUMN_LONGITUDE} REAL," +
@@ -93,7 +93,7 @@ class RideDbHelper(context: Context) :
                     "${TelemetryEntry.COLUMN_DIRECTION} REAL," +
                     "${TelemetryEntry.COLUMN_FIX_SATELLITES} INTEGER," +
                     "${TelemetryEntry.COLUMN_FIX_QUALITY} INTEGER," +
-                    // Campos do CrankData
+                    // CrankData fields
                     "${TelemetryEntry.COLUMN_POWER} REAL," +
                     "${TelemetryEntry.COLUMN_CADENCE} REAL," +
                     "${TelemetryEntry.COLUMN_JOULES} REAL," +
@@ -119,26 +119,26 @@ class RideDbHelper(context: Context) :
     }
 
     override fun onCreate(db: SQLiteDatabase) {
-        Log.i(TAG, "Criando tabelas do banco de dados (v10)...")
+        Log.i(TAG, "Creating database tables (v10)...")
         db.execSQL(SQL_CREATE_RIDES)
         db.execSQL(SQL_CREATE_TELEMETRY_DATA)
-        Log.i(TAG, "Tabelas criadas com sucesso.")
+        Log.i(TAG, "Tables created successfully.")
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        Log.w(TAG, "Atualizando banco de dados da v$oldVersion para v$newVersion. Dados antigos serão perdidos.")
-        // Apaga TODAS as tabelas (novas e antigas)
-        db.execSQL(SQL_DELETE_TELEMETRY_DATA) // Apaga TelemetryData (v9) ou TelemetryData (v10)
+        Log.w(TAG, "Updating database from v$oldVersion to v$newVersion. Old data will be lost.")
+        // Delete ALL tables (new and old)
+        db.execSQL(SQL_DELETE_TELEMETRY_DATA) // Delete TelemetryData (v9) or TelemetryData (v10)
         db.execSQL(SQL_DELETE_OLD_POWER) //
         db.execSQL(SQL_DELETE_OLD_MAPDATA) //
         db.execSQL(SQL_DELETE_OLD_VELOCITY) //
         db.execSQL(SQL_DELETE_OLD_CADENCE) //
-        db.execSQL(SQL_DELETE_RIDES) // Apaga Rides por último
+        db.execSQL(SQL_DELETE_RIDES) // Delete Rides last
         onCreate(db)
     }
 
     override fun onDowngrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        Log.w(TAG, "Fazendo downgrade do banco de dados da v$oldVersion para v$newVersion. Dados antigos serão perdidos.")
+        Log.w(TAG, "Downgrading database from v$oldVersion to v$newVersion. Old data will be lost.")
         onUpgrade(db, oldVersion, newVersion)
     }
 
@@ -146,10 +146,8 @@ class RideDbHelper(context: Context) :
         return SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault()).format(Date())
     }
 
-    // --- INSERT Functions ---
-
     /**
-     * Garante que a "Corrida Geral" (Tabela 1) exista.
+     * Ensures that the "General Ride" (Table 1) exists.
      */
     fun ensureRideExists(rideIdFromDevice: Long, startTime: String?): Boolean {
         if (rideIdFromDevice <= 0) {
@@ -166,26 +164,26 @@ class RideDbHelper(context: Context) :
         try {
             val result = db.insertWithOnConflict(RidesEntry.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_IGNORE)
             if (result == -1L) {
-                // Log.d(TAG, "ensureRideExists: Ride ID $rideIdFromDevice já existe.")
+                // Log.d(TAG, "ensureRideExists: Ride ID $rideIdFromDevice already exists.")
             } else {
-                Log.i(TAG, "Nova entrada na tabela 'Rides' criada para ID: $rideIdFromDevice")
+                Log.i(TAG, "New entry in 'Rides' table created for ID: $rideIdFromDevice")
             }
             return true
         } catch (e: Exception) {
-            Log.e(TAG, "Erro CRÍTICO ao tentar criar entrada na tabela 'Rides' para ID $rideIdFromDevice: ${e.message}")
+            Log.e(TAG, "CRITICAL ERROR when trying to create entry in 'Rides' table for ID $rideIdFromDevice: ${e.message}")
             return false
         }
     }
 
 
     /**
-     * Insere um ponto de telemetria completo (Tabela 2).
+     * Inserts a complete telemetry point (Table 2).
      */
     fun insertTelemetryData(
         rideId: Long,
         infoMap: Map<String, Any?>,
         gpsMap: Map<String, Any?>,
-        crankMap: Map<String, Any?>? // Pode ser nulo
+        crankMap: Map<String, Any?>? // Can be null
     ): Boolean {
         if (rideId <= 0) return false
         val db = this.writableDatabase
@@ -193,41 +191,50 @@ class RideDbHelper(context: Context) :
         val values = ContentValues().apply {
             put(TelemetryEntry.COLUMN_RIDE_ID, rideId)
 
-            // Dados do Info
+            // Info data
             put(TelemetryEntry.COLUMN_PACKET_DATE, infoMap["date"] as? String)
             put(TelemetryEntry.COLUMN_PACKET_TIME, infoMap["time"] as? String)
 
-            // Dados do GpsData (gps)
-            put(TelemetryEntry.COLUMN_GPS_TIMESTAMP, gpsMap["timestamp"] as? String) //
-            put(TelemetryEntry.COLUMN_LATITUDE, gpsMap["latitude"] as? Double) //
-            put(TelemetryEntry.COLUMN_LONGITUDE, gpsMap["longitude"] as? Double) //
-            put(TelemetryEntry.COLUMN_ALTITUDE, gpsMap["altitude"] as? Double) //
-            put(TelemetryEntry.COLUMN_GPS_SPEED, gpsMap["speed"] as? Double) //
-            put(TelemetryEntry.COLUMN_DIRECTION, gpsMap["direction"] as? Double) //
-            put(TelemetryEntry.COLUMN_FIX_SATELLITES, gpsMap["fix_satellites"] as? Int) //
-            put(TelemetryEntry.COLUMN_FIX_QUALITY, gpsMap["fix_quality"] as? Int) //
+            // GpsData data (gps) - all fields obligatory, use 0 as default
+            put(TelemetryEntry.COLUMN_GPS_TIMESTAMP, gpsMap["timestamp"] as? String ?: "")
+            put(TelemetryEntry.COLUMN_LATITUDE, (gpsMap["latitude"] as? Double) ?: 0.0)
+            put(TelemetryEntry.COLUMN_LONGITUDE, (gpsMap["longitude"] as? Double) ?: 0.0)
+            put(TelemetryEntry.COLUMN_ALTITUDE, (gpsMap["altitude"] as? Double) ?: 0.0)
+            put(TelemetryEntry.COLUMN_GPS_SPEED, (gpsMap["speed"] as? Double) ?: 0.0)
+            put(TelemetryEntry.COLUMN_DIRECTION, (gpsMap["direction"] as? Double) ?: 0.0)
+            put(TelemetryEntry.COLUMN_FIX_SATELLITES, (gpsMap["fix_satellites"] as? Int) ?: 0)
+            put(TelemetryEntry.COLUMN_FIX_QUALITY, (gpsMap["fix_quality"] as? Int) ?: 0)
 
-            // Dados do CrankData (crank) (apenas se crankMap não for nulo)
+            // CrankData data (crank) - all fields obligatory, use 0 as default
             crankMap?.let {
-                put(TelemetryEntry.COLUMN_POWER, it["power"] as? Double) //
-                put(TelemetryEntry.COLUMN_CADENCE, it["cadence"] as? Double) //
-                put(TelemetryEntry.COLUMN_JOULES, it["joules"] as? Double) //
-                put(TelemetryEntry.COLUMN_CRANK_CALORIES, it["calories"] as? Double) //
-                put(TelemetryEntry.COLUMN_CRANK_SPEED_MS, it["speed_ms"] as? Double) //
-                put(TelemetryEntry.COLUMN_CRANK_SPEED, it["speed"] as? Double) //
-                put(TelemetryEntry.COLUMN_CRANK_DISTANCE, it["distance"] as? Double) //
+                put(TelemetryEntry.COLUMN_POWER, (it["power"] as? Double) ?: 0.0)
+                put(TelemetryEntry.COLUMN_CADENCE, (it["cadence"] as? Double) ?: 0.0)
+                put(TelemetryEntry.COLUMN_JOULES, (it["joules"] as? Double) ?: 0.0)
+                put(TelemetryEntry.COLUMN_CRANK_CALORIES, (it["calories"] as? Double) ?: 0.0)
+                put(TelemetryEntry.COLUMN_CRANK_SPEED_MS, (it["speed_ms"] as? Double) ?: 0.0)
+                put(TelemetryEntry.COLUMN_CRANK_SPEED, (it["speed"] as? Double) ?: 0.0)
+                put(TelemetryEntry.COLUMN_CRANK_DISTANCE, (it["distance"] as? Double) ?: 0.0)
+            } ?: run {
+                // If no crank data provided, insert zeros for all crank fields
+                put(TelemetryEntry.COLUMN_POWER, 0.0)
+                put(TelemetryEntry.COLUMN_CADENCE, 0.0)
+                put(TelemetryEntry.COLUMN_JOULES, 0.0)
+                put(TelemetryEntry.COLUMN_CRANK_CALORIES, 0.0)
+                put(TelemetryEntry.COLUMN_CRANK_SPEED_MS, 0.0)
+                put(TelemetryEntry.COLUMN_CRANK_SPEED, 0.0)
+                put(TelemetryEntry.COLUMN_CRANK_DISTANCE, 0.0)
             }
         }
 
         val result = db.insert(TelemetryEntry.TABLE_NAME, null, values)
-        if (result == -1L) Log.w(TAG, "Falha ao inserir TelemetryData para ride $rideId")
+        if (result == -1L) Log.w(TAG, "Failed to insert TelemetryData for ride $rideId")
         return result != -1L
     }
 
-    // --- Funções de CONSULTA E CÁLCULO ---
+    // --- QUERY AND CALCULATION FUNCTIONS ---
 
     /**
-     * Retorna uma lista de IDs de corridas (Tabela 1).
+     * Returns a list of ride IDs (Table 1).
      */
     fun getAllRideIds(): List<Long> {
         val db = this.readableDatabase
@@ -247,14 +254,14 @@ class RideDbHelper(context: Context) :
     }
 
     /**
-     * Retorna os dados de resumo de uma corrida (Tabela 1).
-     * Se os totais não estiverem calculados (distância ou calorias zero), calcula e atualiza.
+     * Returns the summary data of a ride (Table 1).
+     * If the totals are not calculated (distance or calories zero), calculates and updates.
      */
     fun getRideSummary(rideId: Long): Map<String, Any?>? {
         val db = this.readableDatabase
         val cursor = db.query(
             RidesEntry.TABLE_NAME,
-            null, // Pega todas as colunas
+            null, // Get all columns
             "${RidesEntry.COLUMN_RIDE_ID} = ?",
             arrayOf(rideId.toString()),
             null, null, null
@@ -273,24 +280,40 @@ class RideDbHelper(context: Context) :
                     }
                 }
 
-                // Verifica se os totais estão calculados
-                val totalDistance = map[RidesEntry.COLUMN_TOTAL_DISTANCE_KM] as? Double ?: 0.0
-                val totalCalories = map[RidesEntry.COLUMN_CALORIES] as? Double ?: 0.0
-                if (totalDistance == 0.0 && totalCalories == 0.0) {
-                    // Calcula estatísticas se não estiverem presentes
-                    val stats = calculateRideStatistics(rideId)
-                    if (stats != null) {
+                // Always recalculate start/end times from telemetry data to ensure accuracy
+                val stats = calculateRideStatistics(rideId)
+                if (stats != null) {
+                    // Update start/end times in database
+                    val timeValues = ContentValues().apply {
+                        stats["start_time"]?.let { put(RidesEntry.COLUMN_START_TIME, it as String) }
+                        stats["end_time"]?.let { put(RidesEntry.COLUMN_END_TIME, it as String) }
+                    }
+                    if (timeValues.size() > 0) {
+                        db.update(
+                            RidesEntry.TABLE_NAME,
+                            timeValues,
+                            "${RidesEntry.COLUMN_RIDE_ID} = ?",
+                            arrayOf(rideId.toString())
+                        )
+                        // Update the map with correct times
+                        map[RidesEntry.COLUMN_START_TIME] = stats["start_time"]
+                        map[RidesEntry.COLUMN_END_TIME] = stats["end_time"]
+                    }
+                    
+                    // Check if totals need to be calculated
+                    val totalDistance = map[RidesEntry.COLUMN_TOTAL_DISTANCE_KM] as? Double ?: 0.0
+                    val totalCalories = map[RidesEntry.COLUMN_CALORIES] as? Double ?: 0.0
+                    
+                    if (totalDistance == 0.0 && totalCalories == 0.0) {
+                        // Update all statistics if not present
                         updateRideSummary(rideId, stats)
-                        // Atualiza o map com os novos valores
+                        // Updates the map with the new values
                         map[RidesEntry.COLUMN_TOTAL_DISTANCE_KM] = stats["total_distance_km"]
                         map[RidesEntry.COLUMN_AVG_VELOCITY_KMH] = stats["avg_velocity_kmh"]
                         map[RidesEntry.COLUMN_AVG_ALTITUDE] = stats["avg_altitude"]
                         map[RidesEntry.COLUMN_AVG_POWER] = stats["avg_power"]
                         map[RidesEntry.COLUMN_AVG_CADENCE] = stats["avg_cadence"]
                         map[RidesEntry.COLUMN_CALORIES] = stats["calories"]
-                        map[RidesEntry.COLUMN_END_TIME] = stats["end_time"]
-                        // Atualiza também o start_time no map
-                        map[RidesEntry.COLUMN_START_TIME] = stats["start_time"]
                     }
                 }
 
@@ -301,35 +324,75 @@ class RideDbHelper(context: Context) :
     }
 
     /**
-     * Calcula as estatísticas de resumo (para Tabela 1)
-     * lendo todos os pontos da Tabela 2.
-     * * Esta é uma operação PESADA. Chame-a apenas no final da corrida.
+     * Calculates summary statistics (for Table 1)
+     * reading all points from Table 2.
      */
     fun calculateRideStatistics(rideId: Long): Map<String, Any?>? {
         val db = this.readableDatabase
 
+        // First, check if statistics are already calculated and stored in the Rides table
+        val existingStatsCursor = db.query(
+            RidesEntry.TABLE_NAME,
+            arrayOf(
+                RidesEntry.COLUMN_RIDE_ID,
+                RidesEntry.COLUMN_START_TIME,
+                RidesEntry.COLUMN_END_TIME,
+                RidesEntry.COLUMN_TOTAL_DISTANCE_KM,
+                RidesEntry.COLUMN_AVG_ALTITUDE,
+                RidesEntry.COLUMN_AVG_VELOCITY_KMH,
+                RidesEntry.COLUMN_AVG_POWER,
+                RidesEntry.COLUMN_AVG_CADENCE,
+                RidesEntry.COLUMN_CALORIES
+            ),
+            "${RidesEntry.COLUMN_RIDE_ID} = ? AND ${RidesEntry.COLUMN_TOTAL_DISTANCE_KM} IS NOT NULL",
+            arrayOf(rideId.toString()),
+            null, null, null
+        )
+
+        existingStatsCursor.use { cursor ->
+            if (cursor.moveToFirst()) {
+                // Statistics already exist, return them
+                val existingStats = mapOf(
+                    "ride_id" to cursor.getLong(cursor.getColumnIndexOrThrow(RidesEntry.COLUMN_RIDE_ID)),
+                    "start_time" to cursor.getString(cursor.getColumnIndexOrThrow(RidesEntry.COLUMN_START_TIME)),
+                    "end_time" to cursor.getString(cursor.getColumnIndexOrThrow(RidesEntry.COLUMN_END_TIME)),
+                    "total_distance_km" to cursor.getDouble(cursor.getColumnIndexOrThrow(RidesEntry.COLUMN_TOTAL_DISTANCE_KM)),
+                    "avg_altitude" to cursor.getDouble(cursor.getColumnIndexOrThrow(RidesEntry.COLUMN_AVG_ALTITUDE)),
+                    "avg_velocity_kmh" to cursor.getDouble(cursor.getColumnIndexOrThrow(RidesEntry.COLUMN_AVG_VELOCITY_KMH)),
+                    "avg_power" to cursor.getDouble(cursor.getColumnIndexOrThrow(RidesEntry.COLUMN_AVG_POWER)),
+                    "avg_cadence" to cursor.getDouble(cursor.getColumnIndexOrThrow(RidesEntry.COLUMN_AVG_CADENCE)),
+                    "calories" to cursor.getDouble(cursor.getColumnIndexOrThrow(RidesEntry.COLUMN_CALORIES))
+                )
+                Log.v(TAG, "Returning cached statistics for ride $rideId")
+                return existingStats
+            }
+        }
+
+        // Statistics don't exist, calculate them from telemetry data
+        Log.v(TAG, "Calculating statistics for ride $rideId (first time)")
         val cursor = db.query(
             TelemetryEntry.TABLE_NAME,
-            arrayOf( // Apenas as colunas necessárias para o cálculo
-                TelemetryEntry.COLUMN_GPS_TIMESTAMP, //
+            arrayOf(
+                TelemetryEntry.COLUMN_GPS_TIMESTAMP,
                 TelemetryEntry.COLUMN_LATITUDE,
                 TelemetryEntry.COLUMN_LONGITUDE,
-                TelemetryEntry.COLUMN_GPS_SPEED, //
-                TelemetryEntry.COLUMN_CRANK_SPEED, //
+                TelemetryEntry.COLUMN_ALTITUDE,
+                TelemetryEntry.COLUMN_GPS_SPEED,
+                TelemetryEntry.COLUMN_CRANK_SPEED,
                 TelemetryEntry.COLUMN_POWER,
                 TelemetryEntry.COLUMN_CADENCE,
-                TelemetryEntry.COLUMN_CRANK_CALORIES, // Adicionado para somar calorias
-                TelemetryEntry.COLUMN_CRANK_DISTANCE // Adicionado para verificar distância cumulativa
+                TelemetryEntry.COLUMN_CRANK_CALORIES,
+                TelemetryEntry.COLUMN_CRANK_DISTANCE
             ),
             "${TelemetryEntry.COLUMN_RIDE_ID} = ?",
             arrayOf(rideId.toString()),
             null, null,
-            "${TelemetryEntry.COLUMN_GPS_TIMESTAMP} ASC" // Ordena por tempo
+            "${TelemetryEntry.COLUMN_GPS_TIMESTAMP} ASC" // Order by time
         )
 
         if (!cursor.moveToFirst()) {
             cursor.close()
-            Log.w(TAG, "calculateRideStatistics: Nenhum dado de telemetria encontrado para ride $rideId")
+            Log.w(TAG, "calculateRideStatistics: No telemetry data found for ride $rideId")
             return null
         }
 
@@ -346,22 +409,27 @@ class RideDbHelper(context: Context) :
         var prevLon = 0.0
         var firstGpsPoint = true
 
-        // <<< INÍCIO DA CORREÇÃO >>>
-        // O formato ISO 8601 inclui o 'T' e tem 6 dígitos de fração de segundo (microssegundos)
+        // The ISO 8601 format includes the 'T' and has 6 fractional second digits (microseconds)
         val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS", Locale.getDefault())
-        val dateFormatFallback = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()) // Caso não haja microssegundos
-        val dateFormatFallbackMillis = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault()) // Caso haja milissegundos
-        // <<< FIM DA CORREÇÃO >>>
+        val dateFormatFallback = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()) // If there are no microseconds
+        val dateFormatFallbackMillis = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault()) // If there are milliseconds
+        // Additional formats with slashes and space separator
+        val dateFormatSlashes = SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault())
+        val dateFormatSlashesMillis = SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS", Locale.getDefault())
+        val dateFormatSlashesMicro = SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSSSSS", Locale.getDefault())
+        // Format used by seed data: space separator with milliseconds
+        val dateFormatSpaceMillis = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
 
         val outputDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
 
 
         cursor.use {
             do {
-                // --- Tempo e Duração ---
+                // --- Time and Duration ---
                 val timestampStr = it.getString(it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_GPS_TIMESTAMP))
+                // Log.v(TAG, "Parsing timestamp: '$timestampStr'")
                 try {
-                    // Tenta o formato principal (com microssegundos)
+                    // Try the main format (with microseconds)
                     val timestamp = dateFormat.parse(timestampStr)?.time
                     if (timestamp != null) {
                         if (startTime == null) startTime = timestamp
@@ -369,7 +437,7 @@ class RideDbHelper(context: Context) :
                     }
                 } catch (e: Exception) {
                     try {
-                        // Tenta o formato com milissegundos
+                        // Try the format with milliseconds
                         val ts = dateFormatFallbackMillis.parse(timestampStr)?.time
                         if (ts != null) {
                             if (startTime == null) startTime = ts
@@ -377,19 +445,55 @@ class RideDbHelper(context: Context) :
                         }
                     } catch (e2: Exception) {
                         try {
-                            // Tenta o formato sem fração de segundo
+                            // Try the format without fractional seconds
                             val ts = dateFormatFallback.parse(timestampStr)?.time
                             if (ts != null) {
                                 if (startTime == null) startTime = ts
                                 endTime = ts
                             }
                         } catch (e3: Exception) {
-                            Log.w(TAG, "Formato de timestamp inválido: $timestampStr")
+                            try {
+                                // Try yyyy/MM/dd HH:mm:ss.SSSSSS
+                                val ts = dateFormatSlashesMicro.parse(timestampStr)?.time
+                                if (ts != null) {
+                                    if (startTime == null) startTime = ts
+                                    endTime = ts
+                                }
+                            } catch (e4: Exception) {
+                                try {
+                                    // Try yyyy/MM/dd HH:mm:ss.SSS
+                                    val ts = dateFormatSlashesMillis.parse(timestampStr)?.time
+                                    if (ts != null) {
+                                        if (startTime == null) startTime = ts
+                                        endTime = ts
+                                    }
+                                } catch (e5: Exception) {
+                                    try {
+                                        // Try yyyy/MM/dd HH:mm:ss
+                                        val ts = dateFormatSlashes.parse(timestampStr)?.time
+                                        if (ts != null) {
+                                            if (startTime == null) startTime = ts
+                                            endTime = ts
+                                        }
+                                    } catch (e6: Exception) {
+                                        try {
+                                            // Try yyyy-MM-dd HH:mm:ss.SSS (seed data format)
+                                            val ts = dateFormatSpaceMillis.parse(timestampStr)?.time
+                                            if (ts != null) {
+                                                if (startTime == null) startTime = ts
+                                                endTime = ts
+                                            }
+                                        } catch (e7: Exception) {
+                                            Log.w(TAG, "Formato de timestamp inválido: $timestampStr")
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
 
-                // --- GPS e Distância ---
+                // GPS (keeps for altitude)
                 val latIdx = it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_LATITUDE)
                 val lonIdx = it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_LONGITUDE)
                 if (!it.isNull(latIdx) && !it.isNull(lonIdx)) {
@@ -401,28 +505,35 @@ class RideDbHelper(context: Context) :
                         prevLon = lon
                         firstGpsPoint = false
                     } else {
-                        // Cálculo de Haversine
-                        val dLat = Math.toRadians(lat - prevLat)
-                        val dLon = Math.toRadians(lon - prevLon)
-                        val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                                Math.cos(Math.toRadians(prevLat)) * Math.cos(Math.toRadians(lat)) *
-                                Math.sin(dLon / 2) * Math.sin(dLon / 2)
-                        val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-                        totalDistanceKm += (6371 * c) // Raio da Terra em km
                         prevLat = lat
                         prevLon = lon
                     }
                 }
 
-                // --- Velocidade (Usa GPS_SPEED como primário) ---
+                // Distance (uses cumulative BLE data)
+                val distIdx = it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_CRANK_DISTANCE)
+                if (!it.isNull(distIdx)) {
+                    val distance = it.getDouble(distIdx)
+                    if (distance > totalDistanceKm) {
+                        totalDistanceKm = distance // Takes the last/largest value (total accumulated distance)
+                    }
+                }
+
+                // --- Altitude ---
+                val altIdx = it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_ALTITUDE)
+                if (!it.isNull(altIdx)) {
+                    altitudes.add(it.getDouble(altIdx))
+                }
+
+                // Speed (Uses GPS_SPEED as primary)
                 val velIdx = it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_GPS_SPEED)
                 val crankVelIdx = it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_CRANK_SPEED)
 
                 if (!it.isNull(velIdx)) {
-                    val velKmh = it.getDouble(velIdx) // Assumindo que a velocidade já está em km/h
+                    val velKmh = it.getDouble(velIdx) // Assuming speed is already in km/h
                     velocities.add(velKmh)
                 } else if (!it.isNull(crankVelIdx)) {
-                    // Fallback para a velocidade do crank (assumindo km/h)
+                    // Fallback to crank speed (assuming km/h)
                     velocities.add(it.getDouble(crankVelIdx))
                 }
 
@@ -438,16 +549,16 @@ class RideDbHelper(context: Context) :
                     cadences.add(it.getDouble(cadIdx))
                 }
 
-                // --- Calorias cumulativas ---
+                // Cumulative calories
                 val calIdx = it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_CRANK_CALORIES)
                 if (!it.isNull(calIdx)) {
-                    totalCalories = it.getDouble(calIdx) // Último valor é o total
+                    totalCalories = it.getDouble(calIdx) // Last value is the total
                 }
 
             } while (it.moveToNext())
         }
 
-        // --- Calcula Médias e Totais ---
+        // Calculate Averages and Totals ---
         val durationSec = if (startTime != null && endTime != null) (endTime!! - startTime!!) / 1000.0 else 0.0
         val durationHours = durationSec / 3600.0
 
@@ -461,7 +572,7 @@ class RideDbHelper(context: Context) :
 
         val result = mapOf(
             "ride_id" to rideId,
-            // Usa o formato de saída do DB
+            // Uses the DB output format
             "start_time" to (startTime?.let { outputDateFormat.format(Date(it)) } ?: getCurrentTimestamp()),
             "end_time" to (endTime?.let { outputDateFormat.format(Date(it)) } ?: getCurrentTimestamp()),
             "total_distance_km" to totalDistanceKm,
@@ -472,18 +583,21 @@ class RideDbHelper(context: Context) :
             "calories" to calculatedCalories
         )
 
-        Log.d(TAG, "Estatísticas calculadas para $rideId: $result")
+        Log.v(TAG, "Statistics calculated for $rideId: $result")
+
+        // Save the calculated statistics to the Rides table
+        updateRideSummary(rideId, result)
+
         return result
     }
 
     /**
-     * Atualiza a Tabela 1 (Rides) com os dados de resumo calculados.
+     * Updates Table 1 (Rides) with calculated summary data.
      */
     fun updateRideSummary(rideId: Long, stats: Map<String, Any?>): Boolean {
         val db = this.writableDatabase
         val values = ContentValues().apply {
 
-            // <<< ESTA É A LINHA QUE FOI ADICIONADA >>>
             stats["start_time"]?.let { put(RidesEntry.COLUMN_START_TIME, it as String) }
 
             stats["end_time"]?.let { put(RidesEntry.COLUMN_END_TIME, it as String) }
@@ -496,7 +610,7 @@ class RideDbHelper(context: Context) :
         }
 
         if (values.size() == 0) {
-            Log.w(TAG, "updateRideSummary: Nenhum dado válido para atualizar no ride $rideId")
+            Log.w(TAG, "updateRideSummary: No valid data to update for ride $rideId")
             return false
         }
 
@@ -507,18 +621,18 @@ class RideDbHelper(context: Context) :
             arrayOf(rideId.toString())
         )
 
-        Log.i(TAG, "Tabela 'Rides' (ID: $rideId) atualizada com estatísticas. Linhas afetadas: $result")
+        Log.i(TAG, "Table 'Rides' (ID: $rideId) updated with statistics. Rows affected: $result")
         return result > 0
     }
 
     /**
-     * Retorna todos os dados de telemetria brutos de uma corrida (Tabela 2).
+     * Returns all raw telemetry data from a ride (Table 2).
      */
     fun getRideTelemetryData(rideId: Long): List<Map<String, Any?>> {
         val db = this.readableDatabase
         val cursor = db.query(
             TelemetryEntry.TABLE_NAME,
-            null, // Pega todas as colunas
+            null, // Get all columns
             "${TelemetryEntry.COLUMN_RIDE_ID} = ?",
             arrayOf(rideId.toString()),
             null, null,
@@ -537,7 +651,7 @@ class RideDbHelper(context: Context) :
                             Cursor.FIELD_TYPE_FLOAT -> map[it.getColumnName(i)] = it.getDouble(i)
                             Cursor.FIELD_TYPE_STRING -> map[it.getColumnName(i)] = it.getString(i)
                             Cursor.FIELD_TYPE_BLOB -> map[it.getColumnName(i)] = it.getBlob(i)
-                            else -> map[it.getColumnName(i)] = null // Padrão
+                            else -> map[it.getColumnName(i)] = null // Default
                         }
                     }
                     results.add(map)
@@ -579,6 +693,14 @@ class RideDbHelper(context: Context) :
             return null
         }
 
+        // Date format parsers for robust timestamp parsing
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS", Locale.getDefault())
+        val dateFormatFallback = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+        val dateFormatFallbackMillis = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault())
+        val dateFormatSlashes = SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault())
+        val dateFormatSlashesMillis = SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS", Locale.getDefault())
+        val dateFormatSlashesMicro = SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSSSSS", Locale.getDefault())
+
         val speeds = mutableListOf<Double>()
         val cadences = mutableListOf<Double>()
         val powers = mutableListOf<Double>()
@@ -606,22 +728,66 @@ class RideDbHelper(context: Context) :
                 }
 
                 // Altitude
-                val altIdx = it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_ALTITUDE)
-                if (!it.isNull(altIdx)) {
-                    altitudes.add(it.getDouble(altIdx))
-                }
+                altitudes.add(it.getDouble(it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_ALTITUDE)))
 
                 // Timestamp for data points
                 val tsIdx = it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_GPS_TIMESTAMP)
                 if (!it.isNull(tsIdx)) {
                     val timestampStr = it.getString(tsIdx)
                     try {
-                        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS", Locale.getDefault())
-                        val timestamp = dateFormat.parse(timestampStr)?.time ?: System.currentTimeMillis()
-                        timestamps.add(timestamp)
+                        val timestamp = dateFormat.parse(timestampStr)?.time
+                        if (timestamp != null) {
+                            timestamps.add(timestamp)
+                        } else {
+                            timestamps.add(System.currentTimeMillis())
+                        }
                     } catch (e: Exception) {
-                        // Fallback timestamp
-                        timestamps.add(System.currentTimeMillis())
+                        try {
+                            val ts = dateFormatFallbackMillis.parse(timestampStr)?.time
+                            if (ts != null) {
+                                timestamps.add(ts)
+                            } else {
+                                timestamps.add(System.currentTimeMillis())
+                            }
+                        } catch (e2: Exception) {
+                            try {
+                                val ts = dateFormatFallback.parse(timestampStr)?.time
+                                if (ts != null) {
+                                    timestamps.add(ts)
+                                } else {
+                                    timestamps.add(System.currentTimeMillis())
+                                }
+                            } catch (e3: Exception) {
+                                try {
+                                    val ts = dateFormatSlashesMicro.parse(timestampStr)?.time
+                                    if (ts != null) {
+                                        timestamps.add(ts)
+                                    } else {
+                                        timestamps.add(System.currentTimeMillis())
+                                    }
+                                } catch (e4: Exception) {
+                                    try {
+                                        val ts = dateFormatSlashesMillis.parse(timestampStr)?.time
+                                        if (ts != null) {
+                                            timestamps.add(ts)
+                                        } else {
+                                            timestamps.add(System.currentTimeMillis())
+                                        }
+                                    } catch (e5: Exception) {
+                                        try {
+                                            val ts = dateFormatSlashes.parse(timestampStr)?.time
+                                            if (ts != null) {
+                                                timestamps.add(ts)
+                                            } else {
+                                                timestamps.add(System.currentTimeMillis())
+                                            }
+                                        } catch (e6: Exception) {
+                                            timestamps.add(System.currentTimeMillis())
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -679,16 +845,43 @@ class RideDbHelper(context: Context) :
             return null
         }
 
+        // Date format parsers for robust timestamp parsing - try most common first
+        val dateFormatFallbackMillis = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
+        val dateFormatFallback = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS", Locale.getDefault())
+        val dateFormatSlashes = SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault())
+        val dateFormatSlashesMillis = SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS", Locale.getDefault())
+        val dateFormatSlashesMicro = SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSSSSS", Locale.getDefault())
+
         val chartData = mutableListOf<Map<String, Any?>>()
 
         cursor.use {
             do {
                 val timestampStr = it.getString(it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_GPS_TIMESTAMP))
                 val timestamp = try {
-                    val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS", Locale.getDefault())
-                    dateFormat.parse(timestampStr)?.time ?: System.currentTimeMillis()
+                    dateFormatFallbackMillis.parse(timestampStr)?.time ?: System.currentTimeMillis()
                 } catch (e: Exception) {
-                    System.currentTimeMillis()
+                    try {
+                        dateFormatFallback.parse(timestampStr)?.time ?: System.currentTimeMillis()
+                    } catch (e2: Exception) {
+                        try {
+                            dateFormat.parse(timestampStr)?.time ?: System.currentTimeMillis()
+                        } catch (e3: Exception) {
+                            try {
+                                dateFormatSlashesMillis.parse(timestampStr)?.time ?: System.currentTimeMillis()
+                            } catch (e4: Exception) {
+                                try {
+                                    dateFormatSlashes.parse(timestampStr)?.time ?: System.currentTimeMillis()
+                                } catch (e5: Exception) {
+                                    try {
+                                        dateFormatSlashesMicro.parse(timestampStr)?.time ?: System.currentTimeMillis()
+                                    } catch (e6: Exception) {
+                                        System.currentTimeMillis()
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
 
                 val speed = if (!it.isNull(it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_GPS_SPEED))) {
@@ -709,11 +902,7 @@ class RideDbHelper(context: Context) :
                     0.0
                 }
 
-                val altitude = if (!it.isNull(it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_ALTITUDE))) {
-                    it.getDouble(it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_ALTITUDE))
-                } else {
-                    0.0
-                }
+                val altitude = it.getDouble(it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_ALTITUDE))
 
                 chartData.add(mapOf(
                     "timestamp" to timestamp,

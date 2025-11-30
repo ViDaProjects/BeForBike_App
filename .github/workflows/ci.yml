@@ -9,11 +9,9 @@ on:
     types: [created]
 
 jobs:
-  # CI job - runs on push/PR to main
   ci:
     name: Build & Test
     runs-on: ubuntu-latest
-    if: github.event_name != 'release'
 
     steps:
     - uses: actions/checkout@v4
@@ -55,46 +53,8 @@ jobs:
     - name: Build debug appbundle
       run: flutter build appbundle --debug
 
-  # Release job - runs only on release creation
-  release:
-    name: Build Release APK
-    runs-on: ubuntu-latest
-    if: github.event_name == 'release'
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '25'
-
-    - uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '3.35.7'
-        channel: 'stable'
-
-    - name: Cache Flutter dependencies
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.pub-cache
-        key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-flutter-
-
-    - name: Install dependencies
-      run: flutter pub get
-
-    - name: Generate l10n
-      run: flutter gen-l10n
-
-    - name: Build release APK
-      run: flutter build apk --release
-
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: release.apk
-        path: build/app/outputs/flutter-apk/app-release.apk
-        
+        name: beforbike.apk
+        path: build/app/outputs/flutter-apk/app-debug.apk

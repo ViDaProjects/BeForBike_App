@@ -3,7 +3,7 @@ description: Be for Bike - A cycling companion app
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -20,8 +20,8 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.9.2'
-  flutter: '>=3.35.7'
+  sdk: ">=3.9.2"
+  flutter: ">=3.35.7"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -46,6 +46,7 @@ dependencies:
   riverpod: ^3.0.3
   flutter_riverpod: ^3.0.3
   hooks_riverpod: ^3.0.3
+  flutter_hooks: ^0.21.3+1
   flutter_map: ^8.2.2
   latlong2: ^0.9.0
   equatable: ^2.0.5
@@ -64,7 +65,7 @@ dependencies:
   # flutter_typeahead: ^5.2.0
   audioplayers: 6.5.1
   vibration: ^3.1.4
-
+  syncfusion_flutter_charts: ^31.2.15
 
   # flutter_keyboard_visibility: ^6.0.0
 dev_dependencies:
@@ -88,12 +89,11 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
-  generate: true 
+  generate: true
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg

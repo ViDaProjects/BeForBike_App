@@ -417,7 +417,7 @@ class MapScreen extends HookConsumerWidget {
                             AudioService().playButtonClick();
                             useSatelliteView.value = !useSatelliteView.value;
                           },
-                          tooltip: useSatelliteView.value ? 'Mostrar mapa' : 'Mostrar satélite',
+                          tooltip: useSatelliteView.value ? 'Display map' : 'Display satellite',
                         ),
                       ),
                     ],
@@ -454,7 +454,7 @@ class MapScreen extends HookConsumerWidget {
                               currentZoom + 1,
                             );
                           },
-                          tooltip: 'Aumentar zoom',
+                          tooltip: 'Increase zoom',
                         ),
                         Container(
                           height: 1,
@@ -474,7 +474,7 @@ class MapScreen extends HookConsumerWidget {
                               currentZoom - 1,
                             );
                           },
-                          tooltip: 'Diminuir zoom',
+                          tooltip: 'Decrease zoom',
                         ),
                       ],
                     ),
@@ -520,7 +520,7 @@ class MapScreen extends HookConsumerWidget {
                           mapController.moveAndRotate(center, optimalZoom, 0.0);
                           mapMoved.value = false; // Reset moved state
                         },
-                        tooltip: 'Recentrar na rota',
+                        tooltip: 'Recentralize map on activity',
                       ),
                     ),
                   ),
@@ -549,7 +549,7 @@ class MapScreen extends HookConsumerWidget {
                         AudioService().playButtonClick();
                         mapController.rotate(0.0);
                       },
-                      tooltip: 'Orientar para o norte',
+                      tooltip: 'Orient to North',
                     ),
                   ),
                 ),

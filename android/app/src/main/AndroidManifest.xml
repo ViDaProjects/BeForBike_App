@@ -16,6 +16,26 @@
     <uses-permission android:name="android.permission.BLUETOOTH_ACCESS_LOCATION" />
     <uses-permission android:name="android.permission.BLUETOOTH_PRIVILEGED" />
     <uses-permission android:name="android.permission.BLUETOOTH_PAIRED_DEVICE" />
+    <!-- Additional comprehensive Bluetooth permissions for God Mode BLE -->
+    <uses-permission android:name="android.permission.BLUETOOTH_STACK" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SDP" />
+    <uses-permission android:name="android.permission.BLUETOOTH_MAP" />
+    <uses-permission android:name="android.permission.BLUETOOTH_DUN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_PAN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_HID" />
+    <uses-permission android:name="android.permission.BLUETOOTH_A2DP" />
+    <uses-permission android:name="android.permission.BLUETOOTH_HFP" />
+    <uses-permission android:name="android.permission.BLUETOOTH_PBAP" />
+    <uses-permission android:name="android.permission.BLUETOOTH_OPP" />
+    <uses-permission android:name="android.permission.BLUETOOTH_GATT" />
+    <uses-permission android:name="android.permission.BLUETOOTH_LE" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN_PRIVILEGED" />
+    <uses-permission android:name="android.permission.BLUETOOTH_TEST" />
+    <uses-permission android:name="android.permission.BLUETOOTH_BREDR" />
+    <uses-permission android:name="android.permission.BLUETOOTH_LE_PRIVILEGED" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE_PRIVILEGED" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN_PRIVILEGED" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT_PRIVILEGED" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_BLUETOOTH" />

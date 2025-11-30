@@ -8,17 +8,28 @@
         errorLine2="                                                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/BleServerService.kt"
-            line="229"
+            line="311"
             column="79"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 33 (current min is 24): `android.bluetooth.BluetoothGattServer#notifyCharacteristicChanged`"
+        errorLine1="                val success = bluetoothGattServer?.notifyCharacteristicChanged(device, characteristic, false, data)"
+        errorLine2="                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/beforbike/app/BleServerService.kt"
+            line="767"
+            column="52"/>
     </issue>
 
     <issue
         id="PropertyEscape"
         message="Windows file separators (`\`) and drive letter separators (&apos;:&apos;) must be escaped (`\\`) in property files; use C\\:\\\\Users\\\\lucas\\\\AppData\\\\Local\\\\Android\\\\sdk"
-        errorLine1="sdk.dir=C:/Users/lucas/AppData/Local/Android/sdk"
+        errorLine1="sdk.dir=C:\\Users\\lucas\\AppData\\Local\\Android\\sdk"
         errorLine2="         ~">
         <location
-            file="$HOME/bicycle-computer-app/android/local.properties"
+            file="$HOME/BeForBike_App/android/local.properties"
             line="1"
             column="10"/>
     </issue>
@@ -26,10 +37,10 @@
     <issue
         id="PropertyEscape"
         message="Windows file separators (`\`) and drive letter separators (&apos;:&apos;) must be escaped (`\\`) in property files; use C\\:\\\\flutter"
-        errorLine1="flutter.sdk=C:/flutter"
+        errorLine1="flutter.sdk=C:\\flutter"
         errorLine2="             ~">
         <location
-            file="$HOME/bicycle-computer-app/android/local.properties"
+            file="$HOME/BeForBike_App/android/local.properties"
             line="2"
             column="14"/>
     </issue>
@@ -59,11 +70,33 @@
     <issue
         id="ProtectedPermissions"
         message="Permission is only granted to system apps"
+        errorLine1="    &lt;uses-permission android:name=&quot;android.permission.BLUETOOTH_STACK&quot; />"
+        errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="20"
+            column="22"/>
+    </issue>
+
+    <issue
+        id="ProtectedPermissions"
+        message="Permission is only granted to system apps"
+        errorLine1="    &lt;uses-permission android:name=&quot;android.permission.BLUETOOTH_MAP&quot; />"
+        errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="22"
+            column="22"/>
+    </issue>
+
+    <issue
+        id="ProtectedPermissions"
+        message="Permission is only granted to system apps"
         errorLine1="    &lt;uses-permission android:name=&quot;android.permission.START_FOREGROUND_SERVICES_FROM_BACKGROUND&quot;/>"
         errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/AndroidManifest.xml"
-            line="22"
+            line="42"
             column="22"/>
     </issue>
 
@@ -74,7 +107,7 @@
         errorLine2="                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/BleServerService.kt"
-            line="515"
+            line="664"
             column="32"/>
     </issue>
 
@@ -85,41 +118,206 @@
         errorLine2="        ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/BleServerService.kt"
-            line="576"
+            line="725"
             column="9"/>
     </issue>
 
     <issue
         id="LogNotTimber"
         message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
-        errorLine1="                        Log.d(&quot;BLE&quot;, &quot;Starting BLE service (always attempt regardless of permissions)&quot;)"
-        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                Log.d(&quot;BLE&quot;, &quot;All permissions were granted by the user.&quot;)"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
-            line="167"
+            line="53"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="LogNotTimber"
+        message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
+        errorLine1="                Log.e(&quot;BLE&quot;, &quot;Permissions denied by user.&quot;)"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
+            line="57"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="LogNotTimber"
+        message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
+        errorLine1="            Log.d(&quot;MainActivity&quot;, &quot;ENABLE_SEED_DATA is true, scheduling insertSampleRide on background thread&quot;)"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
+            line="72"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="LogNotTimber"
+        message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
+        errorLine1="                    Log.d(&quot;MainActivity&quot;, &quot;Seed data insertion completed on background thread&quot;)"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
+            line="77"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="LogNotTimber"
+        message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
+        errorLine1="                    Log.e(&quot;MainActivity&quot;, &quot;Error inserting seed data&quot;, e)"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
+            line="79"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="LogNotTimber"
+        message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
+        errorLine1="            Log.d(&quot;MainActivity&quot;, &quot;ENABLE_SEED_DATA is false, skipping seed data&quot;)"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
+            line="83"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="LogNotTimber"
+        message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
+        errorLine1="            Log.d(&quot;BLE&quot;, &quot;Scheduling BLE service start on background thread to avoid blocking UI&quot;)"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
+            line="92"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="LogNotTimber"
+        message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
+        errorLine1="                    Log.d(&quot;BLE&quot;, &quot;BLE service started on background thread&quot;)"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
+            line="99"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="LogNotTimber"
+        message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
+        errorLine1="                    Log.e(&quot;BLE&quot;, &quot;Error starting BLE service&quot;, e)"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
+            line="101"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="LogNotTimber"
+        message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
+        errorLine1="            Log.d(&quot;BLE&quot;, &quot;Service already running, no need to start automatically.&quot;)"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
+            line="105"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="LogNotTimber"
+        message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
+        errorLine1="                            Log.e(TAG, &quot;Error getting all activities: ${e.message}&quot;)"
+        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
+            line="124"
+            column="29"/>
+    </issue>
+
+    <issue
+        id="LogNotTimber"
+        message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
+        errorLine1="                            Log.e(TAG, &quot;Error getting activity locations: ${e.message}&quot;)"
+        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
+            line="176"
+            column="29"/>
+    </issue>
+
+    <issue
+        id="LogNotTimber"
+        message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
+        errorLine1="                            Log.e(TAG, &quot;Error deleting activity: ${e.message}&quot;)"
+        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
+            line="231"
+            column="29"/>
+    </issue>
+
+    <issue
+        id="LogNotTimber"
+        message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
+        errorLine1="                        Log.d(&quot;BLE&quot;, &quot;Starting BLE service (via setBleEnabled)&quot;)"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
+            line="336"
             column="25"/>
     </issue>
 
     <issue
         id="LogNotTimber"
         message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
-        errorLine1="                        Log.d(&quot;BLE&quot;, &quot;BLE service start command sent&quot;)"
-        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                        Log.d(&quot;BLE&quot;, &quot;Stopping BLE service (via setBleEnabled)&quot;)"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
-            line="169"
+            line="340"
             column="25"/>
     </issue>
 
     <issue
         id="LogNotTimber"
         message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
-        errorLine1="                        Log.d(&quot;BLE&quot;, &quot;Stopping BLE service&quot;)"
-        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                            Log.e(TAG, &quot;Error calculating ride statistics: ${e.message}&quot;)"
+        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
-            line="171"
-            column="25"/>
+            line="383"
+            column="29"/>
+    </issue>
+
+    <issue
+        id="LogNotTimber"
+        message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
+        errorLine1="                            Log.e(TAG, &quot;Error getting ride velocities: ${e.message}&quot;)"
+        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
+            line="398"
+            column="29"/>
+    </issue>
+
+    <issue
+        id="LogNotTimber"
+        message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
+        errorLine1="                            Log.e(TAG, &quot;Error getting ride map data: ${e.message}&quot;)"
+        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
+            line="418"
+            column="29"/>
     </issue>
 
     <issue
@@ -129,19 +327,30 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
-            line="240"
+            line="458"
             column="13"/>
     </issue>
 
     <issue
         id="LogNotTimber"
         message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
-        errorLine1="            Log.d(&quot;BLE&quot;, &quot;All permissions already granted&quot;)"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="            Log.d(&quot;BLE&quot;, &quot;All permissions were already granted.&quot;)"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
-            line="243"
+            line="462"
             column="13"/>
+    </issue>
+
+    <issue
+        id="LogNotTimber"
+        message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
+        errorLine1="        Log.d(&quot;BLE&quot;, &quot;Starting BLE scan and connect process...&quot;)"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
+            line="470"
+            column="9"/>
     </issue>
 
     <issue
@@ -151,18 +360,40 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
-            line="250"
+            line="473"
             column="13"/>
     </issue>
 
     <issue
         id="LogNotTimber"
         message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
-        errorLine1="            Log.e(&quot;BLE&quot;, &quot;No scan permission&quot;)"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="            Log.e(&quot;BLE&quot;, &quot;Missing required permissions: ${missingPermissions.joinToString()}&quot;)"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
-            line="254"
+            line="494"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="LogNotTimber"
+        message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
+        errorLine1="        Log.d(&quot;BLE&quot;, &quot;All required permissions granted, starting scan...&quot;)"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
+            line="500"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="LogNotTimber"
+        message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
+        errorLine1="            Log.e(&quot;BLE&quot;, &quot;Bluetooth LE scanner not available&quot;)"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
+            line="504"
             column="13"/>
     </issue>
 
@@ -173,7 +404,7 @@
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
-            line="278"
+            line="526"
             column="17"/>
     </issue>
 
@@ -184,7 +415,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
-            line="295"
+            line="543"
             column="13"/>
     </issue>
 
@@ -195,7 +426,7 @@
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
-            line="302"
+            line="550"
             column="21"/>
     </issue>
 
@@ -206,7 +437,7 @@
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
-            line="306"
+            line="554"
             column="21"/>
     </issue>
 
@@ -217,7 +448,7 @@
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
-            line="313"
+            line="561"
             column="21"/>
     </issue>
 
@@ -228,51 +459,51 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
-            line="322"
+            line="570"
             column="13"/>
     </issue>
 
     <issue
         id="LogNotTimber"
         message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
-        errorLine1="        Log.i(TAG, &quot;Criando tabelas do banco de dados (v10)...&quot;)"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="        Log.i(TAG, &quot;Creating database tables (v10)...&quot;)"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/database/RideDbHelper.kt"
-            line="120"
+            line="122"
             column="9"/>
     </issue>
 
     <issue
         id="LogNotTimber"
         message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
-        errorLine1="        Log.i(TAG, &quot;Tabelas criadas com sucesso.&quot;)"
+        errorLine1="        Log.i(TAG, &quot;Tables created successfully.&quot;)"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/database/RideDbHelper.kt"
-            line="123"
+            line="125"
             column="9"/>
     </issue>
 
     <issue
         id="LogNotTimber"
         message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
-        errorLine1="        Log.w(TAG, &quot;Atualizando banco de dados da v$oldVersion para v$newVersion. Dados antigos serão perdidos.&quot;)"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="        Log.w(TAG, &quot;Updating database from v$oldVersion to v$newVersion. Old data will be lost.&quot;)"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/database/RideDbHelper.kt"
-            line="127"
+            line="129"
             column="9"/>
     </issue>
 
     <issue
         id="LogNotTimber"
         message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
-        errorLine1="        Log.w(TAG, &quot;Fazendo downgrade do banco de dados da v$oldVersion para v$newVersion. Dados antigos serão perdidos.&quot;)"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="        Log.w(TAG, &quot;Downgrading database from v$oldVersion to v$newVersion. Old data will be lost.&quot;)"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/database/RideDbHelper.kt"
-            line="139"
+            line="141"
             column="9"/>
     </issue>
 
@@ -290,8 +521,8 @@
     <issue
         id="LogNotTimber"
         message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
-        errorLine1="                Log.i(TAG, &quot;Nova entrada na tabela &apos;Rides&apos; criada para ID: $rideIdFromDevice&quot;)"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                Log.i(TAG, &quot;New entry in &apos;Rides&apos; table created for ID: $rideIdFromDevice&quot;)"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/database/RideDbHelper.kt"
             line="169"
@@ -301,8 +532,8 @@
     <issue
         id="LogNotTimber"
         message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
-        errorLine1="            Log.e(TAG, &quot;Erro CRÍTICO ao tentar criar entrada na tabela &apos;Rides&apos; para ID $rideIdFromDevice: ${e.message}&quot;)"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="            Log.e(TAG, &quot;CRITICAL ERROR when trying to create entry in &apos;Rides&apos; table for ID $rideIdFromDevice: ${e.message}&quot;)"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/database/RideDbHelper.kt"
             line="173"
@@ -312,74 +543,96 @@
     <issue
         id="LogNotTimber"
         message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
-        errorLine1="        if (result == -1L) Log.w(TAG, &quot;Falha ao inserir TelemetryData para ride $rideId&quot;)"
-        errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="        if (result == -1L) Log.w(TAG, &quot;Failed to insert TelemetryData for ride $rideId&quot;)"
+        errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/database/RideDbHelper.kt"
-            line="221"
+            line="230"
             column="28"/>
     </issue>
 
     <issue
         id="LogNotTimber"
         message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
-        errorLine1="            Log.w(TAG, &quot;calculateRideStatistics: Nenhum dado de telemetria encontrado para ride $rideId&quot;)"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                Log.v(TAG, &quot;Returning cached statistics for ride $rideId&quot;)"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/database/RideDbHelper.kt"
-            line="329"
-            column="13"/>
+            line="366"
+            column="17"/>
     </issue>
 
     <issue
         id="LogNotTimber"
         message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
-        errorLine1="                        Log.w(TAG, &quot;Formato de timestamp inválido: $timestampStr&quot;)"
-        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="        Log.v(TAG, &quot;Calculating statistics for ride $rideId (first time)&quot;)"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/database/RideDbHelper.kt"
-            line="367"
-            column="25"/>
-    </issue>
-
-    <issue
-        id="LogNotTimber"
-        message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
-        errorLine1="        Log.d(TAG, &quot;Estatísticas calculadas para $rideId: $result&quot;)"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/kotlin/com/beforbike/app/database/RideDbHelper.kt"
-            line="451"
+            line="372"
             column="9"/>
     </issue>
 
     <issue
         id="LogNotTimber"
         message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
-        errorLine1="            Log.w(TAG, &quot;updateRideSummary: Nenhum dado válido para atualizar no ride $rideId&quot;)"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="            Log.w(TAG, &quot;calculateRideStatistics: No telemetry data found for ride $rideId&quot;)"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/database/RideDbHelper.kt"
-            line="470"
+            line="395"
             column="13"/>
     </issue>
 
     <issue
         id="LogNotTimber"
         message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
-        errorLine1="        Log.i(TAG, &quot;Tabela &apos;Rides&apos; (ID: $rideId) atualizada com estatísticas. Linhas afetadas: $result&quot;)"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                                            Log.w(TAG, &quot;Formato de timestamp inválido: $timestampStr&quot;)"
+        errorLine2="                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/database/RideDbHelper.kt"
-            line="481"
+            line="487"
+            column="45"/>
+    </issue>
+
+    <issue
+        id="LogNotTimber"
+        message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
+        errorLine1="        Log.v(TAG, &quot;Statistics calculated for $rideId: $result&quot;)"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/beforbike/app/database/RideDbHelper.kt"
+            line="586"
             column="9"/>
     </issue>
 
     <issue
         id="LogNotTimber"
         message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
-        errorLine1="        android.util.Log.d(&quot;BeForBike&quot;, &quot;Starting sample ride insertion for ride $SAMPLE_RIDE_ID&quot;)"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="            Log.w(TAG, &quot;updateRideSummary: No valid data to update for ride $rideId&quot;)"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/beforbike/app/database/RideDbHelper.kt"
+            line="613"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="LogNotTimber"
+        message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
+        errorLine1="        Log.i(TAG, &quot;Table &apos;Rides&apos; (ID: $rideId) updated with statistics. Rows affected: $result&quot;)"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/beforbike/app/database/RideDbHelper.kt"
+            line="624"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="LogNotTimber"
+        message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
+        errorLine1="        android.util.Log.d(&quot;BeForBike&quot;, &quot;Checking if sample ride $SAMPLE_RIDE_ID already exists&quot;)"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/database/SeedData.kt"
             line="16"
@@ -389,11 +642,22 @@
     <issue
         id="LogNotTimber"
         message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
-        errorLine1="        android.util.Log.d(&quot;BeForBike&quot;, &quot;Removing existing sample ride first&quot;)"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="            android.util.Log.d(&quot;BeForBike&quot;, &quot;Sample ride $SAMPLE_RIDE_ID already exists, skipping insertion&quot;)"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/database/SeedData.kt"
-            line="19"
+            line="21"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="LogNotTimber"
+        message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
+        errorLine1="        android.util.Log.d(&quot;BeForBike&quot;, &quot;Sample ride does not exist, proceeding with insertion&quot;)"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/beforbike/app/database/SeedData.kt"
+            line="25"
             column="9"/>
     </issue>
 
@@ -404,7 +668,7 @@
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/database/SeedData.kt"
-            line="22"
+            line="29"
             column="9"/>
     </issue>
 
@@ -415,7 +679,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/database/SeedData.kt"
-            line="48"
+            line="60"
             column="13"/>
     </issue>
 
@@ -426,7 +690,7 @@
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/database/SeedData.kt"
-            line="52"
+            line="64"
             column="9"/>
     </issue>
 
@@ -437,7 +701,18 @@
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/database/SeedData.kt"
-            line="83"
+            line="95"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="LogNotTimber"
+        message="Using &apos;Log&apos; instead of &apos;Timber&apos;"
+        errorLine1="                android.util.Log.d(&quot;BeForBike&quot;, &quot;Successfully inserted telemetry data for point $index&quot;)"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/beforbike/app/database/SeedData.kt"
+            line="97"
             column="17"/>
     </issue>
 
@@ -448,7 +723,7 @@
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/database/SeedData.kt"
-            line="86"
+            line="100"
             column="9"/>
     </issue>
 
@@ -459,7 +734,7 @@
         errorLine2="                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
-            line="93"
+            line="240"
             column="38"/>
     </issue>
 
@@ -470,7 +745,7 @@
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/com/beforbike/app/MainActivity.kt"
-            line="157"
+            line="322"
             column="25"/>
     </issue>
 
@@ -498,12 +773,199 @@
 
     <issue
         id="SystemPermissionTypo"
+        message="Did you mean `android.permission.BLUETOOTH`?"
+        errorLine1="    &lt;uses-permission android:name=&quot;android.permission.BLUETOOTH_SDP&quot; />"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="21"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="SystemPermissionTypo"
+        message="Did you mean `android.permission.BLUETOOTH`?"
+        errorLine1="    &lt;uses-permission android:name=&quot;android.permission.BLUETOOTH_DUN&quot; />"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="23"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="SystemPermissionTypo"
+        message="Did you mean `android.permission.BLUETOOTH`?"
+        errorLine1="    &lt;uses-permission android:name=&quot;android.permission.BLUETOOTH_PAN&quot; />"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="24"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="SystemPermissionTypo"
+        message="Did you mean `android.permission.BLUETOOTH`?"
+        errorLine1="    &lt;uses-permission android:name=&quot;android.permission.BLUETOOTH_HID&quot; />"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="25"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="SystemPermissionTypo"
+        message="Did you mean `android.permission.BLUETOOTH`?"
+        errorLine1="    &lt;uses-permission android:name=&quot;android.permission.BLUETOOTH_A2DP&quot; />"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="26"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="SystemPermissionTypo"
+        message="Did you mean `android.permission.BLUETOOTH`?"
+        errorLine1="    &lt;uses-permission android:name=&quot;android.permission.BLUETOOTH_HFP&quot; />"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="27"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="SystemPermissionTypo"
+        message="Did you mean `android.permission.BLUETOOTH`?"
+        errorLine1="    &lt;uses-permission android:name=&quot;android.permission.BLUETOOTH_PBAP&quot; />"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="28"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="SystemPermissionTypo"
+        message="Did you mean `android.permission.BLUETOOTH`?"
+        errorLine1="    &lt;uses-permission android:name=&quot;android.permission.BLUETOOTH_OPP&quot; />"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="29"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="SystemPermissionTypo"
+        message="Did you mean `android.permission.BLUETOOTH`?"
+        errorLine1="    &lt;uses-permission android:name=&quot;android.permission.BLUETOOTH_GATT&quot; />"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="30"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="SystemPermissionTypo"
+        message="Did you mean `android.permission.BLUETOOTH`?"
+        errorLine1="    &lt;uses-permission android:name=&quot;android.permission.BLUETOOTH_LE&quot; />"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="31"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="SystemPermissionTypo"
+        message="Did you mean `android.permission.BLUETOOTH`?"
+        errorLine1="    &lt;uses-permission android:name=&quot;android.permission.BLUETOOTH_ADMIN_PRIVILEGED&quot; />"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="32"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="SystemPermissionTypo"
+        message="Did you mean `android.permission.BLUETOOTH`?"
+        errorLine1="    &lt;uses-permission android:name=&quot;android.permission.BLUETOOTH_TEST&quot; />"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="33"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="SystemPermissionTypo"
+        message="Did you mean `android.permission.BLUETOOTH`?"
+        errorLine1="    &lt;uses-permission android:name=&quot;android.permission.BLUETOOTH_BREDR&quot; />"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="34"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="SystemPermissionTypo"
+        message="Did you mean `android.permission.BLUETOOTH`?"
+        errorLine1="    &lt;uses-permission android:name=&quot;android.permission.BLUETOOTH_LE_PRIVILEGED&quot; />"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="35"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="SystemPermissionTypo"
+        message="Did you mean `android.permission.BLUETOOTH`?"
+        errorLine1="    &lt;uses-permission android:name=&quot;android.permission.BLUETOOTH_ADVERTISE_PRIVILEGED&quot; />"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="36"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="SystemPermissionTypo"
+        message="Did you mean `android.permission.BLUETOOTH`?"
+        errorLine1="    &lt;uses-permission android:name=&quot;android.permission.BLUETOOTH_SCAN_PRIVILEGED&quot; />"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="37"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="SystemPermissionTypo"
+        message="Did you mean `android.permission.BLUETOOTH`?"
+        errorLine1="    &lt;uses-permission android:name=&quot;android.permission.BLUETOOTH_CONNECT_PRIVILEGED&quot; />"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="38"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="SystemPermissionTypo"
         message="Did you mean `android.permission.FOREGROUND_SERVICE`?"
         errorLine1="    &lt;uses-permission android:name=&quot;android.permission.FOREGROUND_SERVICE_BLUETOOTH&quot; />"
         errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/AndroidManifest.xml"
-            line="21"
+            line="41"
             column="36"/>
     </issue>
 
@@ -514,7 +976,7 @@
         errorLine2="   ^">
         <location
             file="src/main/AndroidManifest.xml"
-            line="25"
+            line="45"
             column="4"/>
     </issue>
 

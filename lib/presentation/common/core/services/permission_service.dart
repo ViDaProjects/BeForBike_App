@@ -19,7 +19,6 @@ class PermissionService {
       Permission.bluetoothScan,
       Permission.bluetoothAdvertise,
       Permission.storage,
-      // Permissões futuras (Android 15+) serão tratadas apenas no código nativo
     ];
 
     final Map<Permission, PermissionStatus> statuses = {};

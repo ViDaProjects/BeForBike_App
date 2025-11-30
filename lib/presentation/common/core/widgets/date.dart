@@ -14,12 +14,10 @@ class Date extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final formattedDate = DateFormat('dd/MM/yyyy').format(date);
+    final formattedDate = DateFormat('MM/dd/yyyy').format(date);
 
     final formattedTime = DateFormat('HH:mm').format(date);
 
-    return Text(
-      'On $formattedDate at $formattedTime',
-    );
+    return Text('On $formattedDate at $formattedTime');
   }
 }

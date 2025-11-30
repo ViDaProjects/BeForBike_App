@@ -1,0 +1,17 @@
+{
+    "recommendations": [
+        "Dart-Code.flutter",
+        "Dart-Code.dart-code",
+        "fwcd.kotlin",
+        "oracle.oracle-java",
+        "vscjava.vscode-java-pack",
+        "vscjava.vscode-java-upgrade",
+        "ms-vscode.vscode-json",
+        "sonarsource.sonarlint-vscode",
+        "redhat.vscode-xml",
+        "redhat.vscode-yaml",
+        "george-alisson.html-preview-vscode",
+        "bradlc.vscode-tailwindcss",
+        "yzhang.markdown-all-in-one"
+    ]
+}

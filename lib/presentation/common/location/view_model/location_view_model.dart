@@ -4,13 +4,12 @@ import 'package:geolocator/geolocator.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../../../../data/model/request/location_request.dart';
 import 'state/location_state.dart';
 
 final locationViewModelProvider =
     NotifierProvider<LocationViewModel, LocationState>(
-  () => LocationViewModel(),
-);
+      () => LocationViewModel(),
+    );
 
 /// View model for managing location-related functionality.
 class LocationViewModel extends Notifier<LocationState> {
@@ -40,8 +39,10 @@ class LocationViewModel extends Notifier<LocationState> {
     // Try to get initial position immediately
     try {
       final initialPosition = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-        timeLimit: const Duration(seconds: 5),
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 5),
+        ),
       );
 
       // Update state with initial position immediately
@@ -54,8 +55,10 @@ class LocationViewModel extends Notifier<LocationState> {
       // Try with lower accuracy as fallback
       try {
         final fallbackPosition = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.medium,
-          timeLimit: const Duration(seconds: 3),
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.medium,
+            timeLimit: Duration(seconds: 3),
+          ),
         );
 
         state = state.copyWith(
@@ -67,17 +70,19 @@ class LocationViewModel extends Notifier<LocationState> {
       }
     }
 
-    _positionStream ??=
-        Geolocator.getPositionStream().listen((Position position) {
-      if (_positionStream != null) {
-        state = state.copyWith(
-          currentPosition: position,
-          lastPosition: state.currentPosition ?? position,
-        );
-      }
-    }, onError: (error) {
-      // Position stream error
-    });
+    _positionStream ??= Geolocator.getPositionStream().listen(
+      (Position position) {
+        if (_positionStream != null) {
+          state = state.copyWith(
+            currentPosition: position,
+            lastPosition: state.currentPosition ?? position,
+          );
+        }
+      },
+      onError: (error) {
+        // Position stream error
+      },
+    );
   }
 
   /// Retrieves the saved positions as a list of [LatLng] objects.

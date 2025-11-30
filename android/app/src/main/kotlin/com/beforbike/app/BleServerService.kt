@@ -29,7 +29,7 @@ import java.util.*
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.util.zip.GZIPInputStream
-// Adicionada importação para o Executor
+// Added import for Executor
 import java.util.concurrent.Executors
 
 class BleServerService : Service() {
@@ -49,20 +49,20 @@ class BleServerService : Service() {
     private val receivedDataBuffers = mutableMapOf<String, ByteArrayOutputStream>()
 
     /**
-     * Um thread pool dedicado (com um único thread) para processar dados recebidos
-     * (GZIP, JSON, e escrita no DB) fora da thread principal, evitando ANRs.
+     * A dedicated thread pool (with a single thread) to process received data
+     * (GZIP, JSON, and DB writing) outside the main thread, avoiding ANRs.
      */
     private val dataProcessingExecutor = Executors.newSingleThreadExecutor()
 
-    // <<< ADICIONADO >>> Handlers para o "Heartbeat" (ping)
+    // Heartbeat handlers (ping)
     private val heartbeatHandler = Handler(Looper.getMainLooper())
     private val heartbeatRunnable = object : Runnable {
         override fun run() {
-            // Envia um "ping" simples
+            // Sends a simple "ping"
             sendData("ping".toByteArray(Charsets.UTF_8))
-            log("Enviando heartbeat 'ping'...")
-            // Agenda o próximo ping
-            heartbeatHandler.postDelayed(this, 3000) // A cada 3 segundos
+            log("Sending heartbeat 'ping'...")
+            // Schedules the next ping
+            heartbeatHandler.postDelayed(this, 3000) // Every 3 seconds
         }
     }
 
@@ -85,10 +85,10 @@ class BleServerService : Service() {
         private const val NOTIFICATION_CHANNEL_ID = "ble_server_channel_v1"
         private const val NOTIFICATION_CHANNEL_NAME = "BLE Server Service"
 
-        // Constante para o atraso de reinício do advertising
+        // Constant for the advertising restart delay
         private const val ADVERTISING_RESTART_DELAY_MS = 500L
 
-        // Flag estática para o estado do serviço
+        // Static flag for the service state
         @JvmStatic var isServiceRunning = false
     }
 
@@ -115,12 +115,7 @@ class BleServerService : Service() {
         }
     }
 
-    // --- <<< INÍCIO DA CORREÇÃO: NOVO RECEIVER >>> ---
-    /**
-     * Este BroadcastReceiver monitora o estado do adaptador Bluetooth do celular.
-     * Se o usuário desligar o Bluetooth, este receiver será chamado e
-     * o serviço será interrompido.
-     */
+    // Bluetooth state receiver
     private val bluetoothStateReceiver = object : BroadcastReceiver() {
         @RequiresPermission(Manifest.permission.BLUETOOTH_ADVERTISE)
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -128,25 +123,24 @@ class BleServerService : Service() {
                 val state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR)
                 when (state) {
                     BluetoothAdapter.STATE_OFF, BluetoothAdapter.STATE_TURNING_OFF -> {
-                        log("!!! Bluetooth adapter foi desligado. Parando o serviço...")
-                        // Para o advertising
+                        log("!!! Bluetooth adapter was turned off. Stopping the service...")
+                        // Stop advertising
                         if (ActivityCompat.checkSelfPermission(applicationContext, Manifest.permission.BLUETOOTH_ADVERTISE) == PackageManager.PERMISSION_GRANTED) {
                             stopAdvertising()
                         }
-                        // Para o próprio serviço
+                        // Stop the service itself
                         stopSelf()
                     }
                 }
             }
         }
     }
-    // --- <<< FIM DA CORREÇÃO >>> ---
 
 
     // --- Service Lifecycle ---
     override fun onCreate() {
         super.onCreate()
-        // Atualiza a flag estática
+        // Updates the static flag
         isServiceRunning = true
 
         log("Service creating...")
@@ -160,21 +154,21 @@ class BleServerService : Service() {
 
         createNotificationChannel()
 
-        // Registra o receiver de COMANDOS (seu código atual)
+        // Registers the COMMANDS receiver (your current code)
         val intentFilter = IntentFilter().apply { addAction(ACTION_START_ADVERTISING); addAction(ACTION_STOP_ADVERTISING); addAction(ACTION_SEND_DATA) }
         ContextCompat.registerReceiver(this, commandReceiver, intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED)
         log("Advertising receiver registered.")
 
-        // --- <<< INÍCIO DA CORREÇÃO: REGISTRAR O NOVO RECEIVER >>> ---
+        // Bluetooth state receiver registration
         val btStateFilter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
         registerReceiver(bluetoothStateReceiver, btStateFilter)
         log("Bluetooth state receiver registered.")
-        // --- <<< FIM DA CORREÇÃO >>> ---
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         log("BLE service started (onStartCommand).")
         startForegroundNotification()
+
         startServer()
         if (!isAdvertising) {
             log("Trying to start advertising automatically...")
@@ -188,7 +182,7 @@ class BleServerService : Service() {
     @RequiresPermission(Manifest.permission.BLUETOOTH_ADVERTISE)
     override fun onDestroy() {
         super.onDestroy()
-        // Atualiza a flag estática
+        // Updates the static flag
         isServiceRunning = false
 
         log("Service destroying (onDestroy)...")
@@ -196,17 +190,16 @@ class BleServerService : Service() {
         stopAdvertising() // Ensure advertising stops
         stopServer()
 
-        // --- <<< INÍCIO DA CORREÇÃO: DESREGISTRAR OS RECEIVERS >>> ---
+        // Receiver unregistration
         try { unregisterReceiver(commandReceiver) } catch (ignore: Exception) {}
-        try { unregisterReceiver(bluetoothStateReceiver) } catch (ignore: Exception) {} // Desregistra o novo
-        // --- <<< FIM DA CORREÇÃO >>> ---
+        try { unregisterReceiver(bluetoothStateReceiver) } catch (ignore: Exception) {} // Unregister the new one
 
         dbHelper.close()
-        // Desliga o executor
+        // Shut down the executor
         try {
             dataProcessingExecutor.shutdown()
         } catch (e: Exception) {
-            log("!!! Erro ao desligar dataProcessingExecutor: ${e.message}")
+            log("!!! Error shutting down dataProcessingExecutor: ${e.message}")
         }
         log("BLE service stopped.")
     }
@@ -246,16 +239,23 @@ class BleServerService : Service() {
 
     private fun setupGattService() {
         if (bluetoothGattServer == null) { log("!!! setupGattService called without GATT server."); return }
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            log("!!! No BLUETOOTH_CONNECT permission for setupGattService.")
-            return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                log("!!! No BLUETOOTH_CONNECT permission for setupGattService.")
+                return
+            }
+        } else {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED) {
+                log("!!! No BLUETOOTH permission for setupGattService.")
+                return
+            }
         }
         bluetoothGattServer?.clearServices()
         val service = BluetoothGattService(GattProfile.UUID_SERVICE_TRANSFER, BluetoothGattService.SERVICE_TYPE_PRIMARY)
         val dataCharacteristic = BluetoothGattCharacteristic(
             GattProfile.UUID_CHAR_DATA,
             BluetoothGattCharacteristic.PROPERTY_WRITE or BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE or BluetoothGattCharacteristic.PROPERTY_NOTIFY,
-            BluetoothGattCharacteristic.PERMISSION_WRITE
+            0 // No permissions required - allow writes from any device
         )
         // Add CCCD descriptor for notifications
         val cccd = BluetoothGattDescriptor(
@@ -277,14 +277,14 @@ class BleServerService : Service() {
             return
         }
         try {
-            // <<< ADICIONADO >>> Para o timer do heartbeat
+            // Stop the heartbeat timer
             heartbeatHandler.removeCallbacks(heartbeatRunnable)
 
             if (connectedDevices.isNotEmpty()) {
-                log("Desconectando ${connectedDevices.size} dispositivo(s) conectado(s)...")
+                log("Disconnecting ${connectedDevices.size} connected device(s)...")
                 for (device in connectedDevices.toList()) {
-                    val deviceAddress = try { device.address } catch(e: Exception) {"Perm. negada"}
-                    log("  -> Desconectando $deviceAddress")
+                    val deviceAddress = try { device.address } catch(e: Exception) {"Perm. denied"}
+                    log("  -> Disconnecting $deviceAddress")
                     bluetoothGattServer?.cancelConnection(device)
                 }
                 connectedDevices.clear()
@@ -330,7 +330,7 @@ class BleServerService : Service() {
         val data: AdvertiseData = try { dataBuilder.build() } catch (e: Exception) { log("!!! Erro ao construir AdvertiseData: ${e.message}"); return }
 
         try {
-            log("Enviando comando para iniciar advertising...")
+            log("Sending command to start advertising...")
             advertiser.startAdvertising(settings, data, mAdvertiseCallback)
         }
         catch (e: SecurityException) { isAdvertising = false; log("!!! SecurityException in startAdvertising.") }
@@ -382,12 +382,12 @@ class BleServerService : Service() {
     }
 
     // --- Received Data Processing ---
-    // Esta função agora é chamada a partir de um thread de segundo plano
+    // This function is now called from a background thread
     private fun processReceivedData(deviceAddress: String, data: ByteArray): Boolean {
         try {
             var jsonString: String
 
-            // 1. Descomprimir (lógica Gzip/descompressão permanece a mesma)
+            // 1. Decompress (Gzip/decompression logic remains the same)
             if (isGzipped(data)) {
                 log("Compressed data detected (${data.size} bytes), decompressing...")
                 jsonString = decompressGzip(data)
@@ -397,51 +397,51 @@ class BleServerService : Service() {
                 log("Uncompressed data: ${jsonString.length} characters")
             }
 
-            // 2. Carrega o Array de strings (JSON Array)
+            // 2. Load the string Array (JSON Array)
             val jsonArray = JSONArray(jsonString.trim())
             log("Processing ${jsonArray.length()} items from received JSON Array")
 
             var totalSaved = 0
-            var rideIdFromJson = -1L // Para rastrear o rideId do lote
+            var rideIdFromJson = -1L // To track the rideId of the batch
 
             for (i in 0 until jsonArray.length()) {
                 try {
-                    // 'line' é a string: {"info":{...}, "gps":{...}, "crank":{...}}
+                    // 'line' is the string: {"info":{...}, "gps":{...}, "crank":{...}}
                     val line = jsonArray.getString(i)
-                    val jsonObj = JSONObject(line.trim()) // Carrega o objeto principal
+                    val jsonObj = JSONObject(line.trim()) // Loads the main object
 
-                    // 3. Extrai os objetos aninhados do JSON
+                    // 3. Extracts the nested JSON objects
                     val infoObj = jsonObj.optJSONObject("info")
                     val gpsObj = jsonObj.optJSONObject("gps")
-                    val crankObj = jsonObj.optJSONObject("crank") // Pode ser nulo
+                    val crankObj = jsonObj.optJSONObject("crank") // Can be null
 
-                    // 4. Validação essencial (info e gps são obrigatórios)
+                    // 4. Essential validation (info and gps are mandatory)
                     if (infoObj == null || gpsObj == null) {
                         log("!!! JSON item missing 'info' or 'gps' object. Skipping item $i")
                         continue
                     }
 
-                    // 5. Pega o ride_id (assumindo que está em 'info')
-                    rideIdFromJson = infoObj.optLong("ride_id", -1L) // (Sua suposição)
+                    // 5. Gets the ride_id (assuming it's in 'info')
+                    rideIdFromJson = infoObj.optLong("ride_id", -1L) // (Your assumption)
                     if (rideIdFromJson <= 0) {
                         log("!!! JSON 'info' object without valid 'ride_id' in item: $line")
                         continue
                     }
 
-                    // 6. Garante que a "Corrida" (Tabela 1) exista
-                    // Pega a data/hora do pacote para usar como 'start_time' da corrida
+                    // 6. Ensures that the "Ride" (Table 1) exists
+                    // Gets the date/time from the packet to use as the ride's 'start_time'
                     val startTime = infoObj.optString("date") + " " + infoObj.optString("time")
                     if (!dbHelper.ensureRideExists(rideIdFromJson, startTime)) {
                         log("!!! Failed to ensure/create ride ID $rideIdFromJson")
-                        continue // Falha crítica no DB, pula este item
+                        continue // Critical DB failure, skip this item
                     }
 
-                    // 7. Converte os JSONObjects em Maps (para o DbHelper)
+                    // 7. Converts the JSONObjects to Maps (for the DbHelper)
                     val infoMap = infoObj.toMap()
                     val gpsMap = gpsObj.toMap()
-                    val crankMap = crankObj?.toMap() // Será null se crankObj for nulo
+                    val crankMap = crankObj?.toMap() // Will be null if crankObj is null
 
-                    // 8. Chama a NOVA função de inserção unificada (Tabela 2)
+                    // 8. Calls the NEW unified insertion function (Table 2)
                     val success = dbHelper.insertTelemetryData(
                         rideId = rideIdFromJson,
                         infoMap = infoMap,
@@ -459,20 +459,10 @@ class BleServerService : Service() {
             }
 
             log("Processing completed: $totalSaved data point(s) saved from ${jsonArray.length()} item(s)")
-
-            // (Opcional) Chamar o cálculo de estatísticas aqui se for o fim
-            // if (totalSaved > 0 && rideIdFromJson > 0) {
-            //     val stats = dbHelper.calculateRideStatistics(rideIdFromJson)
-            //     if (stats != null) dbHelper.updateRideSummary(rideIdFromJson, stats)
-            // }
-
-            // Retorna 'true' se o processamento foi concluído (mesmo que alguns itens tenham falhado)
             return true
 
         } catch (e: Exception) {
             log("!!! General error in data processing (is data a valid JSONArray?): ${e.message}")
-            // Retorna 'false' se a estrutura inteira falhou (ex: não é um JSONArray)
-            // Isso fará com que o buffer NÃO seja limpo e espere por mais dados.
             return false
         }
     }
@@ -484,7 +474,7 @@ class BleServerService : Service() {
 
     private fun decompressGzip(data: ByteArray): String {
         try {
-            // USA GZIPInputStream (em vez de InflaterInputStream)
+            // USE GZIPInputStream (instead of InflaterInputStream)
             val gzipStream = GZIPInputStream(ByteArrayInputStream(data))
 
             return gzipStream.bufferedReader(Charsets.UTF_8).use { reader: java.io.BufferedReader -> reader.readText() }
@@ -498,12 +488,6 @@ class BleServerService : Service() {
     // --- BLE Callbacks ---
     private val gattServerCallback = object : BluetoothGattServerCallback() {
 
-        /**
-         * LÓGICA CORRIGIDA para 'onConnectionStateChange'
-         * Esta função agora lida corretamente com o início/parada do advertising
-         * para evitar a "condição de corrida".
-         * Também inicia/para o "heartbeat".
-         */
         override fun onConnectionStateChange(device: BluetoothDevice, status: Int, newState: Int) {
             mainHandler.post {
                 // --- Logging ---
@@ -515,62 +499,55 @@ class BleServerService : Service() {
                         device.name ?: "No name"
                     else "Perm. denied"
                 } catch (ignore: Exception) { "?" }
-                // --- Fim Logging ---
+                // --- End Logging ---
 
 
-                // --- LÓGICA CORRIGIDA ---
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
                     // A. ESTADO: CONECTADO
                     log("Device connected: $deviceAddress ($deviceName) - Status: $statusText")
                     connectedDevices.add(device)
 
-                    // Pare o advertising
+                    // Stop advertising
                     if (ActivityCompat.checkSelfPermission(applicationContext, Manifest.permission.BLUETOOTH_ADVERTISE) == PackageManager.PERMISSION_GRANTED) {
                         stopAdvertising()
                     } else {
-                        log("!!! Não pode parar o advertising (sem permissão)")
+                        log("!!! Cannot stop advertising (no permission)")
                     }
 
-                    // <<< ADICIONADO >>> Inicia o timer do heartbeat
+                    // Start the heartbeat timer
                     heartbeatHandler.postDelayed(heartbeatRunnable, 3000)
 
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                    // B. ESTADO: DESCONECTADO
+                    // B. STATE: DISCONNECTED
                     log("Device disconnected: $deviceAddress - Status: $statusText")
                     connectedDevices.remove(device)
                     receivedDataBuffers.remove(deviceAddress)
 
-                    // <<< ADICIONADO >>> Para o timer do heartbeat
+                    // Stop the heartbeat timer
                     heartbeatHandler.removeCallbacks(heartbeatRunnable)
 
 
-                    // Reinicie o advertising (COM O ATRASO)
+                    // Restart advertising (WITH DELAY)
                     if (ActivityCompat.checkSelfPermission(applicationContext, Manifest.permission.BLUETOOTH_ADVERTISE) == PackageManager.PERMISSION_GRANTED) {
 
-                        // Use o atraso para evitar a "race condition"
+                        // Use the delay to avoid the "race condition"
                         mainHandler.postDelayed({
-                            // Verifique o estado NOVAMENTE, caso algo tenha mudado
+                            // Check the state AGAIN, in case something changed
                             if (!isAdvertising && bluetoothGattServer != null) {
-                                log("Reiniciando advertising (após atraso) para aceitar novas conexões...")
+                                log("Restarting advertising (after delay) to accept new connections...")
                                 startAdvertising(currentCompanyId, currentSecretKey)
                             } else {
-                                log("Não foi necessário reiniciar o advertising (já ativo ou servidor parado).")
+                                log("It was not necessary to restart advertising (already active or server stopped).")
                             }
-                        }, ADVERTISING_RESTART_DELAY_MS) // Usa a constante
+                        }, ADVERTISING_RESTART_DELAY_MS) // Use the constant
 
                     } else {
-                        log("!!! Não pode reiniciar o advertising (sem permissão)")
+                        log("!!! Cannot restart advertising (no permission)")
                     }
                 }
-                // --- FIM DA LÓGICA CORRIGIDA ---
             }
         }
 
-        /**
-         * LÓGICA CORRIGIDA para 'onCharacteristicWriteRequest' (NÃO-BLOQUEANTE)
-         * Esta função agora move o trabalho pesado (DB) para um
-         * thread em segundo plano, mantendo a thread principal livre.
-         */
         override fun onCharacteristicWriteRequest(
             device: BluetoothDevice, requestId: Int, characteristic: BluetoothGattCharacteristic,
             preparedWrite: Boolean, responseNeeded: Boolean, offset: Int, value: ByteArray
@@ -578,7 +555,7 @@ class BleServerService : Service() {
             mainHandler.post {
                 val deviceAddress = try { device.address } catch (ignore: SecurityException) { "Perm. denied" }
 
-                // 1. Validação de permissão (na main thread)
+                // 1. Permission validation (on main thread)
                 if (ActivityCompat.checkSelfPermission(applicationContext, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
                     log("!!! No CONNECT permission in Write Request for $deviceAddress.")
                     if (responseNeeded) { sendGattResponse(device, requestId, BluetoothGatt.GATT_WRITE_NOT_PERMITTED) }
@@ -587,51 +564,48 @@ class BleServerService : Service() {
 
                 if (characteristic.uuid == GattProfile.UUID_CHAR_DATA) {
                     try {
-                        // 2. Adiciona dados ao buffer (na main thread - rápido)
+                        // 2. Add data to buffer (on main thread - fast)
                         val deviceKey = deviceAddress
                         val buffer = receivedDataBuffers.getOrPut(deviceKey) { ByteArrayOutputStream() }
                         buffer.write(value)
 
-                        // Copia os dados para enviar ao outro thread
+                        // Copies the data to send to the other thread
                         val dataToProcess = buffer.toByteArray()
 
-                        // 3. Envia o trabalho pesado (processReceivedData) para o thread de processamento
+                        // 3. Sends the heavy work (processReceivedData) to the processing thread
                         dataProcessingExecutor.submit {
                             var processingSuccess = false
                             var gattStatus = BluetoothGatt.GATT_FAILURE
 
                             try {
-                                // 4. Isso agora roda em SEGUNDO PLANO
+                                // 4. This now runs in the BACKGROUND
                                 processingSuccess = processReceivedData(deviceAddress, dataToProcess)
 
                                 if (processingSuccess) {
-                                    // Deu certo, limpa o buffer
+                                    // It worked, clear the buffer
                                     mainHandler.post { receivedDataBuffers.remove(deviceKey) }
-                                    log("Dados processados e buffer limpo para $deviceAddress")
+                                    log("Data processed and buffer cleared for $deviceAddress")
                                     gattStatus = BluetoothGatt.GATT_SUCCESS
                                 } else {
-                                    // Não deu certo (provavelmente dados parciais)
-                                    log("Aguardando mais dados de $deviceAddress (${dataToProcess.size} bytes recebidos)")
-                                    // Se NÃO foi sucesso, não limpa o buffer
-                                    // Responde SUCESSO mesmo assim para o cliente
+                                    log("Waiting for more data from $deviceAddress (${dataToProcess.size} bytes received)")
                                     gattStatus = BluetoothGatt.GATT_SUCCESS
                                 }
 
                             } catch (e: Exception) {
                                 log("!!! EXCEPTION in data processing (background): ${e.message}")
-                                // Se deu erro, limpa o buffer
+                                // If there was an error, clear the buffer
                                 mainHandler.post { receivedDataBuffers.remove(deviceKey) }
                                 gattStatus = BluetoothGatt.GATT_FAILURE
 
                             } finally {
-                                // 5. Responde ao cliente DEPOIS de processar
+                                // 5. Respond to the client AFTER processing
                                 if (responseNeeded) {
-                                    mainHandler.post { // A resposta DEVE ser na main thread
+                                    mainHandler.post { // The response MUST be on the main thread
                                         sendGattResponse(device, requestId, gattStatus)
                                     }
                                 }
                             }
-                        } // Fim do dataProcessingExecutor.submit
+                        } // End of dataProcessingExecutor.submit
 
                     } catch (e: Exception) {
                         log("!!! EXCEPTION in write request (main): ${e.message}")
@@ -643,14 +617,14 @@ class BleServerService : Service() {
                     if (responseNeeded) { sendGattResponse(device, requestId, BluetoothGatt.GATT_REQUEST_NOT_SUPPORTED) }
                 }
             }
-        } // Fim do onCharacteristicWriteRequest
+        } // End of onCharacteristicWriteRequest
 
         override fun onDescriptorWriteRequest( device: BluetoothDevice, requestId: Int, descriptor: BluetoothGattDescriptor, preparedWrite: Boolean, responseNeeded: Boolean, offset: Int, value: ByteArray ) {
             val deviceAddress = try { device.address } catch (ignore: SecurityException) { "Perm. denied" }
             mainHandler.post {
                 if (ActivityCompat.checkSelfPermission(applicationContext, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) { /*...*/ return@post }
                 if (descriptor.uuid == GattProfile.CLIENT_CHARACTERISTIC_CONFIG) {
-                    log("Write to CCCD from $deviceAddress. Cliente (PC) 'assinou' as notificações.")
+                    log("Write to CCCD from $deviceAddress. Client (PC) 'subscribed' to notifications.")
                     if (responseNeeded) sendGattResponse(device, requestId, BluetoothGatt.GATT_SUCCESS)
                 }
                 else {
@@ -659,15 +633,15 @@ class BleServerService : Service() {
                 }
             }
         }
-        override fun onServiceAdded(status: Int, service: BluetoothGattService?) { mainHandler.post { log("Serviço ${service?.uuid} adicionado: ${BluetoothUtils.gattStatusToString(status)}") } }
-        override fun onMtuChanged(device: BluetoothDevice?, mtu: Int) { mainHandler.post { val addr = try{device?.address}catch(ignore:Exception){"?"}; log("MTU alterado para $mtu com $addr") } }
-    } // Fim gattServerCallback
+        override fun onServiceAdded(status: Int, service: BluetoothGattService?) { mainHandler.post { log("Service ${service?.uuid} added: ${BluetoothUtils.gattStatusToString(status)}") } }
+        override fun onMtuChanged(device: BluetoothDevice?, mtu: Int) { mainHandler.post { val addr = try{device?.address}catch(ignore:Exception){"?"}; log("MTU changed to $mtu with $addr") } }
+    } // End gattServerCallback
 
-    // --- Métodos Helper ---
+    // --- Helper Methods ---
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(NOTIFICATION_CHANNEL_ID, NOTIFICATION_CHANNEL_NAME, NotificationManager.IMPORTANCE_LOW)
-                .apply { description = "Serviço BLE em execução"; setShowBadge(false) }
+                .apply { description = "BLE service running"; setShowBadge(false) }
             val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             if (manager.getNotificationChannel(NOTIFICATION_CHANNEL_ID) == null) {
                 try { manager.createNotificationChannel(channel); log("Canal de notificação criado.") }
@@ -679,7 +653,7 @@ class BleServerService : Service() {
     private fun updateForegroundNotification(contentText: String) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-            log("!!! Sem permissão POST_NOTIFICATIONS para atualizar."); return
+            log("!!! No POST_NOTIFICATIONS permission to update."); return
         }
         val notification: Notification = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
             .setContentTitle("BLE Server Active").setContentText(contentText)
@@ -693,7 +667,7 @@ class BleServerService : Service() {
     private fun startForegroundNotification() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-            log("!!! Sem permissão POST_NOTIFICATIONS para iniciar Foreground.")
+            log("!!! No POST_NOTIFICATIONS permission to start Foreground.")
         }
         val initialNotification: Notification = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
             .setContentTitle("BLE Server Active").setContentText("Initializing...")
@@ -712,39 +686,39 @@ class BleServerService : Service() {
                     }
                 }
 
-                // Adicionar tipos futuros (Android 15+) dinamicamente, se disponíveis
+                // Add future types (Android 15+) dynamically, if available
                 val futureTypes = listOf("FOREGROUND_SERVICE_TYPE_BLE", "FOREGROUND_SERVICE_TYPE_BLUETOOTH_ADVANCED")
                 for (type in futureTypes) {
                     try {
                         val typeValue = ServiceInfo::class.java.getField(type).getInt(null)
                         foregroundType = foregroundType or typeValue
                     } catch (e: Exception) {
-                        // Tipo não disponível, ignorar
+                        // Type not available, ignore
                     }
                 }
                 startForeground(NOTIFICATION_ID, initialNotification, foregroundType)
             } else {
                 startForeground(NOTIFICATION_ID, initialNotification)
             }
-            log("Serviço iniciado em primeiro plano.")
+            log("Service started in foreground.")
             updateForegroundNotification("Waiting for connections and commands.")
         } catch (e: Exception) {
-            log("!!! Erro ao iniciar startForeground: ${e.message}")
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { stopSelf() } // Para se falhar no Android 12+
+            log("!!! Error starting startForeground: ${e.message}")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { stopSelf() } // Stop if failed on Android 12+
         }
     }
 
     private fun sendGattResponse(device: BluetoothDevice, requestId: Int, status: Int) {
         val deviceAddress = try { device.address } catch (ignore: SecurityException) { "Perm. negada" }
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            log("!!! PERMISSÃO CONNECT FALTANTE ao enviar resposta GATT para $deviceAddress."); return
+            log("!!! MISSING CONNECT PERMISSION when sending GATT response to $deviceAddress."); return
         }
-        if (bluetoothGattServer == null) { log("!!! Servidor GATT nulo ao enviar resposta para $deviceAddress."); return }
+        if (bluetoothGattServer == null) { log("!!! GATT server null when sending response to $deviceAddress."); return }
         try {
             val statusString = BluetoothUtils.gattStatusToString(status)
-            log("Enviando resposta GATT ($statusString) para $deviceAddress, Req ID: $requestId")
+            log("Sending GATT response ($statusString) to $deviceAddress, Req ID: $requestId")
             bluetoothGattServer?.sendResponse(device, requestId, status, 0, null)
-        } catch (e: Exception) { log("!!! EXCEÇÃO ao enviar resposta GATT para $deviceAddress: ${e.message}") }
+        } catch (e: Exception) { log("!!! EXCEPTION when sending GATT response to $deviceAddress: ${e.message}") }
     }
 
     private fun log(message: String) {
@@ -788,8 +762,9 @@ class BleServerService : Service() {
                     continue
                 }
                 // Set characteristic value before notifying (API level 24+ compatible)
-                characteristic.value = data
-                val success = bluetoothGattServer?.notifyCharacteristicChanged(device, characteristic, false)
+                @Suppress("DEPRECATION")
+                characteristic.setValue(data)
+                val success = bluetoothGattServer?.notifyCharacteristicChanged(device, characteristic, false, data)
                 val deviceAddress = try { device.address } catch (ignore: SecurityException) { "Perm. denied" }
                 log("Data sent to $deviceAddress: ${success ?: "null"} (${data.size} bytes)")
             } catch (e: Exception) {
@@ -799,7 +774,6 @@ class BleServerService : Service() {
     }
 }
 
-// Classe BluetoothUtils (sem alterações)
 object BluetoothUtils {
     fun gattStatusToString(status: Int): String {
         return when (status) {
@@ -814,7 +788,7 @@ object BluetoothUtils {
             BluetoothGatt.GATT_CONNECTION_CONGESTED -> "CONNECTION_CONGESTED(143)"
             BluetoothGatt.GATT_FAILURE -> "FAILURE(257)"
             133 -> "GATT_ERROR(133)"
-            8 -> "INSUFFICIENT_AUTHORIZATION(8)" // Código numérico
+            8 -> "INSUFFICIENT_AUTHORIZATION(8)" // Numeric code
             else -> "Status GATT $status"
         }
     }
@@ -826,10 +800,9 @@ object BluetoothUtils {
         }
     }
 }
-// [No arquivo BleServerService.kt, cole estas funções]
 
 /**
- * Converte um JSONObject em um Map<String, Any?>.
+ * Converts a JSONObject to a Map<String, Any?>.
  */
 fun JSONObject.toMap(): Map<String, Any?> {
     val map = mutableMapOf<String, Any?>()
@@ -849,7 +822,7 @@ fun JSONObject.toMap(): Map<String, Any?> {
 }
 
 /**
- * Converte um JSONArray em um List<Any?>.
+ * Converts a JSONArray to a List<Any?>.
  */
 fun JSONArray.toList(): List<Any?> {
     val list = mutableListOf<Any?>()

@@ -16,11 +16,6 @@ migrate_working_dir/
 *.iws
 .idea/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
 # Flutter/Dart/Pub related
 **/doc/api/
 **/ios/Flutter/.last_build_id
@@ -31,6 +26,7 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+pubspec.lock
 
 # Symbolication related
 app.*.symbols
@@ -43,3 +39,87 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 /android/local.properties
+
+gradle-wrapper.jar
+.gradle/
+captures/
+gradlew
+gradlew.bat
+local.properties
+GeneratedPluginRegistrant.java
+build/
+lint-baseline.xml
+.kotlin/
+
+# Android build outputs
+*.apk
+*.aar
+*.so
+*.dex
+*.jar
+
+# Android Studio
+*.jks
+*.keystore
+!debug.keystore
+
+# Android generated files
+/android/app/build/
+/android/build/
+/android/gradle/
+/android/gradlew
+/android/gradlew.bat
+/android/local.properties
+/android/.gradle/
+/android/.kotlin/
+/android/app/src/main/res/drawable-*
+/android/app/src/main/res/mipmap-*
+
+# Remember to never publicly share your keystore.
+# See https://flutter.dev/docs/deployment/android#reference-the-keystore-from-the-app
+key.properties
+**/*.keystore
+**/*.jks
+
+# Coverage
+coverage/
+
+# Test results
+test-results/
+
+# Flutter web
+web/build/
+web/packages/
+
+# Flutter macOS
+macos/Flutter/ephemeral/
+macos/Pods/
+
+# Flutter Linux
+linux/ephemeral/
+linux/flutter/ephemeral/
+
+# Flutter Windows
+windows/ephemeral/
+windows/flutter/ephemeral/
+
+# IDE files
+.idea/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# Logs
+logs/
+*.log
+
+# Firebase
+google-services.json
+GoogleService-Info.plist
+
+# Environment variables
+.env
+.env.local
+.env.production
