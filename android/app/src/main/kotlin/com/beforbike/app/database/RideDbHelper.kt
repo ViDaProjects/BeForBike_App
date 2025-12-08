@@ -16,7 +16,7 @@ class RideDbHelper(context: Context) :
 
     companion object {
         // Incrementado para v11 para adicionar as novas colunas
-        const val DATABASE_VERSION = 11
+        const val DATABASE_VERSION = 15
         const val DATABASE_NAME = "BikeRides.db"
         private const val TAG = "RideDbHelper"
 

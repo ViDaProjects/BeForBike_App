@@ -430,6 +430,7 @@ class BleServerService : Service() {
 
                     // 6. Ensures that the "Ride" (Table 1) exists
                     // Gets the date/time from the packet to use as the ride's 'start_time'
+                    //TODO: arrumar aqui, talvez starttime duplicadp
                     val startTime = infoObj.optString("date") + " " + infoObj.optString("time")
                     if (!dbHelper.ensureRideExists(rideIdFromJson, startTime)) {
                         log("!!! Failed to ensure/create ride ID $rideIdFromJson")
