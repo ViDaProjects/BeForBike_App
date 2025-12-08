@@ -16,7 +16,7 @@ class RideDbHelper(context: Context) :
 
     companion object {
         // Incrementado para v11 para adicionar as novas colunas
-        const val DATABASE_VERSION = 19
+        const val DATABASE_VERSION = 21
         const val DATABASE_NAME = "BikeRides.db"
         private const val TAG = "RideDbHelper"
 
@@ -182,11 +182,34 @@ class RideDbHelper(context: Context) :
         if (rideId <= 0) return false
         val db = this.writableDatabase
 
+        // --- NOVO: BLOQUEIO DE DUPLICATAS ---
+        // Verifica se já existe um registro com este mesmo ride_id e horário
+        val packetTime = infoMap["time"] as? String
+
+        if (packetTime != null) {
+            val cursor = db.query(
+                TelemetryEntry.TABLE_NAME,
+                arrayOf(TelemetryEntry.COLUMN_TELEMETRY_ID), // Só precisamos saber se tem ID
+                "${TelemetryEntry.COLUMN_RIDE_ID} = ? AND ${TelemetryEntry.COLUMN_PACKET_TIME} = ?",
+                arrayOf(rideId.toString(), packetTime),
+                null, null, null
+            )
+
+            val exists = cursor.count > 0
+            cursor.close()
+
+            if (exists) {
+                Log.d(TAG, "Pacote duplicado ignorado para o tempo: $packetTime")
+                return false
+            }
+        }
+        // ------------------------------------
+
         val values = ContentValues().apply {
             put(TelemetryEntry.COLUMN_RIDE_ID, rideId)
 
             put(TelemetryEntry.COLUMN_PACKET_DATE, infoMap["date"] as? String)
-            put(TelemetryEntry.COLUMN_PACKET_TIME, infoMap["time"] as? String)
+            put(TelemetryEntry.COLUMN_PACKET_TIME, packetTime)
 
             put(TelemetryEntry.COLUMN_GPS_TIMESTAMP, gpsMap["timestamp"] as? String)
             put(TelemetryEntry.COLUMN_LATITUDE, (gpsMap["latitude"] as? Number)?.toDouble())
@@ -198,7 +221,7 @@ class RideDbHelper(context: Context) :
             put(TelemetryEntry.COLUMN_FIX_QUALITY, gpsMap["fix_quality"] as? Int)
 
             crankMap?.let {
-                // AQUI ESTAVA O BUG: Usamos (Number)?.toDouble() para aceitar Zeros
+                // Mantendo a correção de segurança para números (Number?.toDouble)
                 put(TelemetryEntry.COLUMN_POWER, (it["power"] as? Number)?.toDouble())
                 put(TelemetryEntry.COLUMN_CADENCE, (it["cadence"] as? Number)?.toDouble())
                 put(TelemetryEntry.COLUMN_JOULES, (it["joules"] as? Number)?.toDouble())
