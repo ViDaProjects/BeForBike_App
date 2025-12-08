@@ -16,7 +16,7 @@ class RideDbHelper(context: Context) :
 
     companion object {
         // Incrementado para v11 para adicionar as novas colunas
-        const val DATABASE_VERSION = 15
+        const val DATABASE_VERSION = 19
         const val DATABASE_NAME = "BikeRides.db"
         private const val TAG = "RideDbHelper"
 
@@ -185,27 +185,27 @@ class RideDbHelper(context: Context) :
         val values = ContentValues().apply {
             put(TelemetryEntry.COLUMN_RIDE_ID, rideId)
 
-            // DADOS CRUCIAIS: Data vinda do Info
-            put(TelemetryEntry.COLUMN_PACKET_DATE, infoMap["date"] as? String) // "yyyy-MM-dd HH:mm:ss"
+            put(TelemetryEntry.COLUMN_PACKET_DATE, infoMap["date"] as? String)
             put(TelemetryEntry.COLUMN_PACKET_TIME, infoMap["time"] as? String)
 
             put(TelemetryEntry.COLUMN_GPS_TIMESTAMP, gpsMap["timestamp"] as? String)
-            put(TelemetryEntry.COLUMN_LATITUDE, gpsMap["latitude"] as? Double)
-            put(TelemetryEntry.COLUMN_LONGITUDE, gpsMap["longitude"] as? Double)
-            put(TelemetryEntry.COLUMN_ALTITUDE, gpsMap["altitude"] as? Double)
-            put(TelemetryEntry.COLUMN_GPS_SPEED, gpsMap["speed"] as? Double)
-            put(TelemetryEntry.COLUMN_DIRECTION, gpsMap["direction"] as? Double)
+            put(TelemetryEntry.COLUMN_LATITUDE, (gpsMap["latitude"] as? Number)?.toDouble())
+            put(TelemetryEntry.COLUMN_LONGITUDE, (gpsMap["longitude"] as? Number)?.toDouble())
+            put(TelemetryEntry.COLUMN_ALTITUDE, (gpsMap["altitude"] as? Number)?.toDouble())
+            put(TelemetryEntry.COLUMN_GPS_SPEED, (gpsMap["speed"] as? Number)?.toDouble())
+            put(TelemetryEntry.COLUMN_DIRECTION, (gpsMap["direction"] as? Number)?.toDouble())
             put(TelemetryEntry.COLUMN_FIX_SATELLITES, gpsMap["fix_satellites"] as? Int)
             put(TelemetryEntry.COLUMN_FIX_QUALITY, gpsMap["fix_quality"] as? Int)
 
             crankMap?.let {
-                put(TelemetryEntry.COLUMN_POWER, it["power"] as? Double)
-                put(TelemetryEntry.COLUMN_CADENCE, it["cadence"] as? Double)
-                put(TelemetryEntry.COLUMN_JOULES, it["joules"] as? Double)
-                put(TelemetryEntry.COLUMN_CRANK_CALORIES, it["calories"] as? Double)
-                put(TelemetryEntry.COLUMN_CRANK_SPEED_MS, it["speed_ms"] as? Double)
-                put(TelemetryEntry.COLUMN_CRANK_SPEED, it["speed"] as? Double)
-                put(TelemetryEntry.COLUMN_CRANK_DISTANCE, it["distance"] as? Double)
+                // AQUI ESTAVA O BUG: Usamos (Number)?.toDouble() para aceitar Zeros
+                put(TelemetryEntry.COLUMN_POWER, (it["power"] as? Number)?.toDouble())
+                put(TelemetryEntry.COLUMN_CADENCE, (it["cadence"] as? Number)?.toDouble())
+                put(TelemetryEntry.COLUMN_JOULES, (it["joules"] as? Number)?.toDouble())
+                put(TelemetryEntry.COLUMN_CRANK_CALORIES, (it["calories"] as? Number)?.toDouble())
+                put(TelemetryEntry.COLUMN_CRANK_SPEED_MS, (it["speed_ms"] as? Number)?.toDouble())
+                put(TelemetryEntry.COLUMN_CRANK_SPEED, (it["speed"] as? Number)?.toDouble())
+                put(TelemetryEntry.COLUMN_CRANK_DISTANCE, (it["distance"] as? Number)?.toDouble())
             }
         }
         return db.insert(TelemetryEntry.TABLE_NAME, null, values) != -1L
@@ -279,17 +279,14 @@ class RideDbHelper(context: Context) :
     fun calculateRideStatistics(rideId: Long): Map<String, Any?>? {
         val db = this.readableDatabase
 
-        // 1. Adicionei COLUMN_CRANK_DISTANCE na projeção, pois estava faltando para cumprir o TODO da distância
         val cursor = db.query(
             TelemetryEntry.TABLE_NAME,
             arrayOf(
                 TelemetryEntry.COLUMN_PACKET_DATE,
-                TelemetryEntry.COLUMN_LATITUDE, // Mantido caso queira debug ou fallback, mas o cálculo principal mudou
-                TelemetryEntry.COLUMN_LONGITUDE,
                 TelemetryEntry.COLUMN_ALTITUDE,
                 TelemetryEntry.COLUMN_GPS_SPEED,
                 TelemetryEntry.COLUMN_CRANK_SPEED,
-                TelemetryEntry.COLUMN_CRANK_DISTANCE, // <-- ADICIONADO
+                TelemetryEntry.COLUMN_CRANK_DISTANCE,
                 TelemetryEntry.COLUMN_POWER,
                 TelemetryEntry.COLUMN_CADENCE,
                 TelemetryEntry.COLUMN_CRANK_CALORIES
@@ -304,27 +301,28 @@ class RideDbHelper(context: Context) :
             return null
         }
 
-        // Variáveis de Estado
         var startTime: Long? = null
         var endTime: Long? = null
         val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
 
-        // Acumuladores e Rastreadores de Máximas
+        // Variáveis para Máximas
         var maxSpeed = 0.0
         var maxPower = 0.0
         var maxCadence = 0.0
         var maxAltitude = 0.0
 
-        // Listas para médias que NÃO são cumulativas
+        // Listas para calcular as médias
+        val speeds = mutableListOf<Double>()
         val powers = mutableListOf<Double>()
+        val cadences = mutableListOf<Double>()
         val altitudes = mutableListOf<Double>()
 
-        // Variáveis para valores "Last Known" (já acumulados pelo sensor)
-        var lastTotalDistanceKm = 0.0
+        // Acumuladores finais
+        var lastTotalDistanceMeters = 0.0
         var lastTotalCalories = 0.0
-        var lastAvgCadence = 0.0
 
         cursor.use {
+            // Índices das colunas
             val dateIdx = it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_PACKET_DATE)
             val altIdx = it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_ALTITUDE)
             val gpsSpeedIdx = it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_GPS_SPEED)
@@ -335,7 +333,7 @@ class RideDbHelper(context: Context) :
             val calIdx = it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_CRANK_CALORIES)
 
             do {
-                // --- 1. Tempo (Start/End) ---
+                // 1. Tempo
                 val dateStr = it.getString(dateIdx)
                 if (dateStr != null) {
                     try {
@@ -345,77 +343,76 @@ class RideDbHelper(context: Context) :
                             if (startTime == null) startTime = ts
                             endTime = ts
                         }
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Erro parsing packet_date: $dateStr")
-                    }
+                    } catch (e: Exception) { Log.e(TAG, "Erro parse data: $dateStr") }
                 }
 
-                // --- 2. Distância (#TODO: PEGAR ULTIMO VALOR) ---
+                // 2. Distância (Acumulada em Metros)
                 if (!it.isNull(crankDistIdx)) {
                     val dist = it.getDouble(crankDistIdx)
-                    // Assume que o sensor envia valor cumulativo. Atualizamos sempre o "último visto".
-                    if (dist > lastTotalDistanceKm) {
-                        lastTotalDistanceKm = dist
-                    }
+                    if (dist > lastTotalDistanceMeters) lastTotalDistanceMeters = dist
                 }
 
-                // --- 3. Altitude (Média e Máxima) ---
+                // 3. Altitude (Sempre adicionamos, pois existe altitude mesmo parado)
                 if (!it.isNull(altIdx)) {
                     val alt = it.getDouble(altIdx)
+                    // Filtramos 0 absoluto pois geralmente é erro de GPS iniciando,
+                    // mas não filtramos "parado"
                     if (alt != 0.0) {
                         altitudes.add(alt)
                         if (alt > maxAltitude) maxAltitude = alt
                     }
                 }
 
-                // --- 4. Velocidade Máxima (#TODO: PRIORIDADE CRANK) ---
+                // 4. Velocidade
                 val cSpeed = if (!it.isNull(crankSpeedIdx)) it.getDouble(crankSpeedIdx) else null
                 val gSpeed = if (!it.isNull(gpsSpeedIdx)) it.getDouble(gpsSpeedIdx) else null
-
-                // Prioridade: Se tem CrankSpeed, usa ele. Se não, usa GPS. Se nenhum, 0.0
+                // Prioriza sensor de roda, senão GPS, senão 0
                 val currentSpeed = cSpeed ?: gSpeed ?: 0.0
+
+                speeds.add(currentSpeed) // Adiciona na lista para média
                 if (currentSpeed > maxSpeed) maxSpeed = currentSpeed
 
-                // --- 5. Potência (#TODO: CALCULAR MAX E MEDIA) ---
-                // Potência é instantânea, então acumulamos na lista para média e verificamos pico.
-                if (!it.isNull(powerIdx)) {
-                    val p = it.getDouble(powerIdx)
-                    powers.add(p)
-                    if (p > maxPower) maxPower = p
-                }
+                // 5. Potência
+                val p = if (!it.isNull(powerIdx)) it.getDouble(powerIdx) else 0.0
+                powers.add(p)
+                if (p > maxPower) maxPower = p
 
-                // --- 6. Cadência (#TODO: JA VEM SOMADO, PEGAR ULTIMA COLUNA) ---
-                // Se "já vem somado" (ou é uma média cumulativa do sensor), guardamos o último valor para a média final.
-                // Mas para Máxima, ainda precisamos varrer os valores instantâneos se o sensor oscilar.
-                if (!it.isNull(cadIdx)) {
-                    val c = it.getDouble(cadIdx)
-                    lastAvgCadence = c // O último valor lido será a média/total final
-                    if (c > maxCadence) maxCadence = c
-                }
+                // 6. Cadência
+                val c = if (!it.isNull(cadIdx)) it.getDouble(cadIdx) else 0.0
+                cadences.add(c)
+                if (c > maxCadence) maxCadence = c
 
-                // --- 7. Calorias (#TODO: JA VEM SOMADO) ---
+                // 7. Calorias
                 if (!it.isNull(calIdx)) {
                     val cal = it.getDouble(calIdx)
-                    if (cal > lastTotalCalories) {
-                        lastTotalCalories = cal
-                    }
+                    if (cal > lastTotalCalories) lastTotalCalories = cal
                 }
 
             } while (it.moveToNext())
         }
 
-        // --- CÁLCULOS FINAIS ---
+        // --- CÁLCULOS FINAIS COM LÓGICA DE "ATIVA" (IGNORANDO ZEROS) ---
 
-        val avgPower = if (powers.isNotEmpty()) powers.average() else 0.0
+        // 1. Correção de Unidade: Metros para KM
+        val totalDistanceKm = lastTotalDistanceMeters / 1000.0
+
+        // 2. Velocidade Média em Movimento (Average Moving Speed)
+        // Filtramos velocidades muito baixas (< 1.0 km/h) que são ruído
+        val activeSpeeds = speeds.filter { it > 1.0 }
+        val avgSpeed = if (activeSpeeds.isNotEmpty()) activeSpeeds.average() else 0.0
+
+        // 3. Potência Média Ativa (Average Active Power)
+        // Filtramos potências < 1.0 Watt (ignora roda livre/parado)
+        val activePowers = powers.filter { it > 1.0 }
+        val avgPower = if (activePowers.isNotEmpty()) activePowers.average() else 0.0
+
+        // 4. Cadência Média Ativa
+        // Filtramos zeros (ignora quando parou de pedalar)
+        val activeCadences = cadences.filter { it > 0 }
+        val avgCadence = if (activeCadences.isNotEmpty()) activeCadences.average() else 0.0
+
+        // 5. Altitude Média (Geralmente se usa média total)
         val avgAltitude = if (altitudes.isNotEmpty()) altitudes.average() else 0.0
-
-        // Velocidade Média calculada com base na Distância Final (do sensor) / Tempo Total
-        val startTs = startTime ?: 0L
-        val endTs = endTime ?: 0L
-        val durationMillis = if (endTs >= startTs) endTs - startTs else 0L
-        val durationHours = durationMillis / 1000.0 / 3600.0
-
-        val avgSpeed = if (durationHours > 0.002) lastTotalDistanceKm / durationHours else 0.0
 
         val outputDateFmt = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
 
@@ -424,21 +421,17 @@ class RideDbHelper(context: Context) :
             "start_time" to if (startTime != null) outputDateFmt.format(Date(startTime!!)) else null,
             "end_time" to if (endTime != null) outputDateFmt.format(Date(endTime!!)) else null,
 
-            // Distância direta do sensor (último valor)
-            "total_distance_km" to lastTotalDistanceKm,
-
-            // Calorias direta do sensor (último valor)
+            "total_distance_km" to totalDistanceKm, // Agora corrigido para KM
             "calories" to lastTotalCalories,
 
             "max_velocity_kmh" to maxSpeed,
-            "avg_velocity_kmh" to avgSpeed,
+            "avg_velocity_kmh" to avgSpeed, // Média apenas em movimento
 
             "max_power" to maxPower,
-            "avg_power" to avgPower,
+            "avg_power" to avgPower, // Média apenas pedalando
 
             "max_cadence" to maxCadence,
-            // Cadência média baseada no último valor lido (conforme TODO "pegar ultima coluna")
-            "avg_cadence" to lastAvgCadence,
+            "avg_cadence" to avgCadence, // Média apenas pedalando
 
             "max_altitude" to maxAltitude,
             "avg_altitude" to avgAltitude

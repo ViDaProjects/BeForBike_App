@@ -255,7 +255,7 @@ class BleServerService : Service() {
         val dataCharacteristic = BluetoothGattCharacteristic(
             GattProfile.UUID_CHAR_DATA,
             BluetoothGattCharacteristic.PROPERTY_WRITE or BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE or BluetoothGattCharacteristic.PROPERTY_NOTIFY,
-            0 // No permissions required - allow writes from any device
+            BluetoothGattCharacteristic.PERMISSION_WRITE // No permissions required - allow writes from any device
         )
         // Add CCCD descriptor for notifications
         val cccd = BluetoothGattDescriptor(
