@@ -559,7 +559,6 @@ class RideDbHelper(context: Context) :
 
     /**
      * Retorna os dados brutos para os gráficos do Flutter.
-     * (Restaurado do seu código original para garantir compatibilidade com os gráficos)
      */
     fun getActivityChartData(rideId: Long): List<Map<String, Any?>>? {
         val db = this.readableDatabase
@@ -567,16 +566,17 @@ class RideDbHelper(context: Context) :
         val cursor = db.query(
             TelemetryEntry.TABLE_NAME,
             arrayOf(
+                TelemetryEntry.COLUMN_CRANK_SPEED,
                 TelemetryEntry.COLUMN_GPS_SPEED,
                 TelemetryEntry.COLUMN_CADENCE,
                 TelemetryEntry.COLUMN_POWER,
                 TelemetryEntry.COLUMN_ALTITUDE,
-                TelemetryEntry.COLUMN_GPS_TIMESTAMP
+                TelemetryEntry.COLUMN_PACKET_DATE
             ),
             "${TelemetryEntry.COLUMN_RIDE_ID} = ?",
             arrayOf(rideId.toString()),
             null, null,
-            "${TelemetryEntry.COLUMN_GPS_TIMESTAMP} ASC"
+            "${TelemetryEntry.COLUMN_PACKET_DATE} ASC"
         )
 
         if (!cursor.moveToFirst()) {
@@ -584,7 +584,6 @@ class RideDbHelper(context: Context) :
             return null
         }
 
-        // Formatadores de data robustos (do seu código original)
         val dateFormatFallbackMillis = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
         val dateFormatFallback = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
         val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS", Locale.getDefault())
@@ -594,7 +593,7 @@ class RideDbHelper(context: Context) :
 
         cursor.use {
             do {
-                val timestampStr = it.getString(it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_GPS_TIMESTAMP))
+                val timestampStr = it.getString(it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_PACKET_DATE))
 
                 // Tenta fazer o parse da data de várias formas
                 val timestamp = try {
@@ -611,7 +610,9 @@ class RideDbHelper(context: Context) :
                     }
                 } ?: System.currentTimeMillis()
 
-                val speed = if (!it.isNull(it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_GPS_SPEED))) {
+                val speed = if (!it.isNull(it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_CRANK_SPEED))) {
+                    it.getDouble(it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_CRANK_SPEED))
+                } else if (!it.isNull(it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_GPS_SPEED))) {
                     it.getDouble(it.getColumnIndexOrThrow(TelemetryEntry.COLUMN_GPS_SPEED))
                 } else 0.0
 
