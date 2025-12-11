@@ -1,17 +1,14 @@
-# BeForBike
+# BeForBike Mobile Cycling App
 
-A comprehensive cycling computer app that combines Flutter technology and native Android to provide an extensive cycling activity tracking experience.
+![App](https://github.com/ViDaProjects/BeForBike_App/blob/main/assets/app.gif)
+
+A comprehensive cycling computer fitness app that combines Flutter and Kotlin to provide an extensive cycling activity tracking experience.
 
 ## 📋 About the Project
 
-This is a project developed as part of Integration Workshop 3, demonstrating the integration between Flutter (user interface) and native Android (background services and database). The app allows cyclists to track their activities in real-time, view detailed statistics, and analyze traveled routes.
+This is a project developed as part of Integration Workshop 3, demonstrating the integration between Flutter (user interface) and Kotlin (background services and database). The app allows cyclists to track their activities in real-time, view detailed statistics, and analyze traveled routes.
 
 ## ✨ Features
-
-### 🏃‍♂️ Real-Time Tracking
-- **Real-time GPS**: Precise location tracking during cycling
-- **Live metrics**: Speed, distance, cadence, and power
-- **Intuitive interface**: Clean design that's easy to use during exercise
 
 ### 📊 Activity Analysis
 - **Detailed statistics**: Duration, distance traveled, average/maximum speed
@@ -25,15 +22,13 @@ This is a project developed as part of Integration Workshop 3, demonstrating the
 ### 🔧 Technical Features
 - **BLE Integration**: Native Android Bluetooth LE server implementation for sensor connectivity
 - **Local database**: Efficient storage using SQLite on Android with statistics caching
-- **Audio & Haptic Feedback**: Button interaction sounds and vibration patterns
+- **Audio & Haptic Feedback**: Button interaction vibration patterns
 - **Seed data**: Sample data for demonstration and testing
-- **Cross-platform**: Android support (iOS disabled in this project)
+- **Platform**: Android support
 
 ## 🛠️ Technologies Used
 
 ### Frontend (Flutter)
-- **Framework**: Flutter 3.38.3+
-- **Language**: Dart 3.10.1+
 - **State Management**: Riverpod + Hooks
 - **UI Components**:
   - `fl_chart`: Interactive charts
@@ -44,13 +39,9 @@ This is a project developed as part of Integration Workshop 3, demonstrating the
   - `geolocator`: Location services
   - `permission_handler`: Permission management
   - `shared_preferences`: Local storage
-  - `audioplayers`: Audio playback
   - `vibration`: Device vibration
-  - `wakelock_plus`: Screen wake lock
 
 ### Backend (Native Android)
-- **SDK**: Gradle 9.2.1+
-- **Java**: JDK 25+
 - **Database**: SQLite with Room
 - **BLE**: Native Android Bluetooth LE implementation
 - **Services**: Background processing and statistics calculations
@@ -65,9 +56,10 @@ This is a project developed as part of Integration Workshop 3, demonstrating the
 ### Prerequisites
 - Flutter SDK 3.38.3 or higher
 - Dart SDK 3.10.1 or higher
-- Android Studio with Android SDK
+- Gradle 9.2.1+
+- JDK 25+
+- Android Studio with Android SDK 36 Baklava
 - Android device or emulator
-- JDK 25 or higher
 
 ### Installation
 
